@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import Link from "next/link";
 import api from "@/lib/api";
 import InvoiceTable, { Invoice } from "@/components/billing/InvoiceTable";
 import {
@@ -12,7 +13,8 @@ import {
   Loader2,
   SlidersHorizontal,
   RotateCcw,
-  ChevronDown
+  ChevronDown,
+  ArrowLeft,
 } from "lucide-react";
 
 const STATUS_OPTIONS = [
@@ -54,7 +56,15 @@ export default function InvoicePage() {
     loadInvoices();
   }, []);
 
-  const hasActiveFilters = status || patientId || from || to;
+  const hasActiveFilters = useMemo(
+    () => !!(status || patientId || from || to),
+    [status, patientId, from, to]
+  );
+
+  const activeFilterCount = useMemo(
+    () => [status, patientId, from, to].filter(Boolean).length,
+    [status, patientId, from, to]
+  );
 
   const clearFilters = () => {
     setStatus("");
@@ -63,56 +73,67 @@ export default function InvoicePage() {
     setTo("");
   };
 
-  const activeFilterCount = [status, patientId, from, to].filter(Boolean).length;
-
   return (
     <div className="min-h-screen bg-gray-50/50 p-6 md:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
-        
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">
-              Invoices
-            </h1>
-            <p className="text-gray-500 mt-1 text-sm">
-              {invoices.length} invoice{invoices.length !== 1 ? "s" : ""} found
-              {hasActiveFilters && " matching your filters"}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            {hasActiveFilters && (
-              <button
-                onClick={clearFilters}
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                Clear filters
-              </button>
-            )}
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                showFilters || hasActiveFilters
-                  ? "bg-slate-900 text-white shadow-sm"
-                  : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50"
-              }`}
-            >
-              <SlidersHorizontal className="w-4 h-4" />
-              Filters
-              {activeFilterCount > 0 && (
-                <span className="ml-1 px-1.5 py-0.5 bg-white/20 rounded-md text-xs font-bold">
-                  {activeFilterCount}
-                </span>
+        <div className="flex flex-col gap-4">
+          <Link
+            href="/dashboard/billing"
+            className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-slate-900 transition-colors w-fit group"
+          >
+            <div className="p-1 rounded-md group-hover:bg-gray-200 transition-colors">
+              <ArrowLeft className="w-4 h-4" />
+            </div>
+            <span className="font-medium">Back to Billing</span>
+          </Link>
+
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">
+                Invoices
+              </h1>
+              <p className="text-gray-500 mt-1 text-sm">
+                {invoices.length} invoice{invoices.length !== 1 ? "s" : ""} found
+                {hasActiveFilters && " matching your filters"}
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  Clear filters
+                </button>
               )}
-            </button>
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                  showFilters || hasActiveFilters
+                    ? "bg-slate-900 text-white shadow-sm"
+                    : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50"
+                }`}
+              >
+                <SlidersHorizontal className="w-4 h-4" />
+                Filters
+                {activeFilterCount > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 bg-white/20 rounded-md text-xs font-bold">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Filters Panel */}
         <div
           className={`bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden transition-all duration-300 ${
-            showFilters ? "max-h-96 opacity-100" : "max-h-0 opacity-0 border-transparent"
+            showFilters
+              ? "max-h-[28rem] opacity-100"
+              : "max-h-0 opacity-0 border-transparent"
           }`}
         >
           <div className="p-5 space-y-4">
@@ -120,11 +141,13 @@ export default function InvoicePage() {
               <Filter className="w-4 h-4" />
               Filter Invoices
             </div>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Patient ID */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-gray-700">Patient ID</label>
+                <label className="text-xs font-semibold text-gray-700">
+                  Patient ID
+                </label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
@@ -138,7 +161,9 @@ export default function InvoicePage() {
 
               {/* Status */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-gray-700">Status</label>
+                <label className="text-xs font-semibold text-gray-700">
+                  Status
+                </label>
                 <div className="relative">
                   <select
                     className="w-full pl-3 pr-10 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 transition-all bg-white appearance-none cursor-pointer"
@@ -157,7 +182,9 @@ export default function InvoicePage() {
 
               {/* Date From */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-gray-700">From Date</label>
+                <label className="text-xs font-semibold text-gray-700">
+                  From Date
+                </label>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
@@ -171,7 +198,9 @@ export default function InvoicePage() {
 
               {/* Date To */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-gray-700">To Date</label>
+                <label className="text-xs font-semibold text-gray-700">
+                  To Date
+                </label>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
@@ -187,19 +216,28 @@ export default function InvoicePage() {
             {/* Active Filter Tags */}
             {hasActiveFilters && (
               <div className="flex flex-wrap items-center gap-2 pt-2">
-                <span className="text-xs text-gray-500 font-medium">Active:</span>
+                <span className="text-xs text-gray-500 font-medium">
+                  Active:
+                </span>
                 {patientId && (
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-medium">
                     Patient: {patientId}
-                    <button onClick={() => setPatientId("")} className="hover:text-slate-900">
+                    <button
+                      onClick={() => setPatientId("")}
+                      className="hover:text-slate-900"
+                    >
                       <X className="w-3 h-3" />
                     </button>
                   </span>
                 )}
                 {status && (
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-medium">
-                    Status: {STATUS_OPTIONS.find(s => s.value === status)?.label}
-                    <button onClick={() => setStatus("")} className="hover:text-slate-900">
+                    Status:{" "}
+                    {STATUS_OPTIONS.find((s) => s.value === status)?.label}
+                    <button
+                      onClick={() => setStatus("")}
+                      className="hover:text-slate-900"
+                    >
                       <X className="w-3 h-3" />
                     </button>
                   </span>
@@ -207,7 +245,10 @@ export default function InvoicePage() {
                 {from && (
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-medium">
                     From: {from}
-                    <button onClick={() => setFrom("")} className="hover:text-slate-900">
+                    <button
+                      onClick={() => setFrom("")}
+                      className="hover:text-slate-900"
+                    >
                       <X className="w-3 h-3" />
                     </button>
                   </span>
@@ -215,7 +256,10 @@ export default function InvoicePage() {
                 {to && (
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-medium">
                     To: {to}
-                    <button onClick={() => setTo("")} className="hover:text-slate-900">
+                    <button
+                      onClick={() => setTo("")}
+                      className="hover:text-slate-900"
+                    >
                       <X className="w-3 h-3" />
                     </button>
                   </span>
@@ -243,19 +287,28 @@ export default function InvoicePage() {
         {/* Active Filter Bar (collapsed view) */}
         {!showFilters && hasActiveFilters && (
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-gray-500 font-medium">Active filters:</span>
+            <span className="text-xs text-gray-500 font-medium">
+              Active filters:
+            </span>
             {patientId && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-gray-200 text-slate-700 rounded-lg text-xs font-medium shadow-sm">
                 Patient: {patientId}
-                <button onClick={() => setPatientId("")} className="hover:text-slate-900 ml-1">
+                <button
+                  onClick={() => setPatientId("")}
+                  className="hover:text-slate-900 ml-1"
+                >
                   <X className="w-3 h-3" />
                 </button>
               </span>
             )}
             {status && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-gray-200 text-slate-700 rounded-lg text-xs font-medium shadow-sm">
-                Status: {STATUS_OPTIONS.find(s => s.value === status)?.label}
-                <button onClick={() => setStatus("")} className="hover:text-slate-900 ml-1">
+                Status:{" "}
+                {STATUS_OPTIONS.find((s) => s.value === status)?.label}
+                <button
+                  onClick={() => setStatus("")}
+                  className="hover:text-slate-900 ml-1"
+                >
                   <X className="w-3 h-3" />
                 </button>
               </span>
@@ -263,7 +316,10 @@ export default function InvoicePage() {
             {from && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-gray-200 text-slate-700 rounded-lg text-xs font-medium shadow-sm">
                 From: {from}
-                <button onClick={() => setFrom("")} className="hover:text-slate-900 ml-1">
+                <button
+                  onClick={() => setFrom("")}
+                  className="hover:text-slate-900 ml-1"
+                >
                   <X className="w-3 h-3" />
                 </button>
               </span>
@@ -271,7 +327,10 @@ export default function InvoicePage() {
             {to && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-gray-200 text-slate-700 rounded-lg text-xs font-medium shadow-sm">
                 To: {to}
-                <button onClick={() => setTo("")} className="hover:text-slate-900 ml-1">
+                <button
+                  onClick={() => setTo("")}
+                  className="hover:text-slate-900 ml-1"
+                >
                   <X className="w-3 h-3" />
                 </button>
               </span>

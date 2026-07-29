@@ -87,7 +87,7 @@ export default function WalkInVisitPage() {
 
       await api.patch(`/appointments/${appointment.data.id}/checkin`);
 
-      router.push("/dashboard/triage");
+      router.push("/dashboard/nurse/triage");
 
     } catch (err: any) {
       alert(err.response?.data?.error || "Failed to register walk-in visit.");

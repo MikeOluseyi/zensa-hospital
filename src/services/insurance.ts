@@ -50,6 +50,9 @@ export const InsuranceAPI = {
     startDate?: string;
     endDate?: string;
   }) => api.post("/insurance/assign", data).then((r) => r.data),
+
+  quickAddProvider: (data: { name: string; claimsEmail?: string; claimsPortalUrl?: string }): Promise<InsuranceProvider> =>
+    api.post("/insurance-Provider/quick-add", data).then((r) => r.data),
 };
 
 export interface Claim {
@@ -115,4 +118,6 @@ export const ClaimAPI = {
 
   getTimeline: (id: string) =>
     api.get(`/claims/${id}/timeline`).then((r) => r.data),
+
+
 };
