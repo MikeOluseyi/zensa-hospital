@@ -11,6 +11,7 @@ import {
   Clock,
   Printer,
 } from "lucide-react";
+import { useHospitalInfo } from "@/hooks/useHospitalInfo";
 
 interface Patient {
   id: string;
@@ -42,6 +43,7 @@ export default function PharmacyPage() {
   const [loading, setLoading] = useState(true);
   const printRef = useRef<HTMLDivElement>(null);
   const [printingId, setPrintingId] = useState<string | null>(null);
+  const { hospital } = useHospitalInfo();
 
   async function loadPrescriptions() {
     try {
@@ -135,9 +137,10 @@ export default function PharmacyPage() {
               </head>
               <body>
                 <div class="header">
-                  <h2>ZENSA HMS</h2>
-                  <p>Prescription Label</p>
-                </div>
+  <h2>${hospital?.name ?? "Zensa Health"}</h2>
+  ${hospital?.phone ? `<p>${hospital.phone}</p>` : ""}
+  <p>Prescription Label</p>
+</div>
                 <div class="section">
                   <div class="label">Patient</div>
                   <div class="value">${item.medicalRecord?.patient?.firstName || ""} ${item.medicalRecord?.patient?.lastName || ""}</div>

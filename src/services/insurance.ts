@@ -30,9 +30,22 @@ export interface PatientInsurance {
   provider: InsuranceProvider;
 }
 
+export interface InsurancePlan {
+  id: string;
+  name: string;
+  scope: "GENERAL" | "CONDITION_SPECIFIC";
+  coveragePercent: number;
+  authorizationRequired: boolean;
+  maxClaimAmount: number | null;
+  active: boolean;
+}
+
 export const InsuranceAPI = {
   getProviders: (): Promise<InsuranceProvider[]> =>
     api.get("/insurance-Provider").then((r) => r.data),
+
+  getProviderPlans: (providerId: string): Promise<InsurancePlan[]> =>
+    api.get(`/insurance-Provider/${providerId}/plans`).then((r) => r.data),
 
   getPatientInsurance: (patientId: string): Promise<PatientInsurance[]> =>
     api.get(`/insurance/patient/${patientId}`).then((r) => r.data),
@@ -40,6 +53,7 @@ export const InsuranceAPI = {
   assignInsurance: (data: {
     patientId: string;
     providerId: string;
+    planId?: string;
     policyNumber: string;
     memberId?: string;
     authorizationNumber?: string;
@@ -91,7 +105,7 @@ export interface Claim {
 }
 
 export const ClaimAPI = {
-  create: (data: { insuranceId: string; invoiceId: string }) =>
+  create: (data: { insuranceId: string; invoiceId: string; claimedAmount?: number }) =>
     api.post("/claims", data).then((r) => r.data),
 
   getAll: (): Promise<Claim[]> => api.get("/claims").then((r) => r.data),

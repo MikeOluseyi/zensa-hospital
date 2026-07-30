@@ -6,6 +6,7 @@ import api from "@/lib/api";
 import { cn } from "@/lib/utils";
 import InventorySearch from "@/components/inventory/InventorySearch";
 import MedicationScheduleFields from "@/components/medications/MedicationScheduleFields";
+import VoiceInputButton from "@/components/common/VoiceInputButton";
 import {
   Activity,
   Pill,
@@ -1007,11 +1008,90 @@ async function confirmDischarge() {
             <Card title="New Doctor Review (SOAP)" icon={Stethoscope} className="border-blue-200 bg-blue-50/30">
               <form onSubmit={addNote} className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
-                  <textarea placeholder="Subjective" rows={3} className="border border-slate-300 rounded-lg p-3 text-sm resize-none" value={form.subjective} onChange={(e) => setForm({ ...form, subjective: e.target.value })} />
-                  <textarea placeholder="Objective" rows={3} className="border border-slate-300 rounded-lg p-3 text-sm resize-none" value={form.objective} onChange={(e) => setForm({ ...form, objective: e.target.value })} />
-                  <textarea placeholder="Assessment" rows={3} className="border border-slate-300 rounded-lg p-3 text-sm resize-none" value={form.assessment} onChange={(e) => setForm({ ...form, assessment: e.target.value })} />
-                  <textarea placeholder="Plan" rows={3} className="border border-slate-300 rounded-lg p-3 text-sm resize-none" value={form.plan} onChange={(e) => setForm({ ...form, plan: e.target.value })} />
-                </div>
+  <div>
+    <div className="flex items-center justify-between mb-1">
+      <span className="text-xs font-medium text-slate-500">Subjective</span>
+      <VoiceInputButton
+        onTranscript={(text) =>
+          setForm((prev) => ({
+            ...prev,
+            subjective: prev.subjective ? `${prev.subjective} ${text}` : text,
+          }))
+        }
+      />
+    </div>
+    <textarea
+      placeholder="Subjective"
+      rows={3}
+      className="border border-slate-300 rounded-lg p-3 text-sm resize-none w-full"
+      value={form.subjective}
+      onChange={(e) => setForm({ ...form, subjective: e.target.value })}
+    />
+  </div>
+
+  <div>
+    <div className="flex items-center justify-between mb-1">
+      <span className="text-xs font-medium text-slate-500">Objective</span>
+      <VoiceInputButton
+        onTranscript={(text) =>
+          setForm((prev) => ({
+            ...prev,
+            objective: prev.objective ? `${prev.objective} ${text}` : text,
+          }))
+        }
+      />
+    </div>
+    <textarea
+      placeholder="Objective"
+      rows={3}
+      className="border border-slate-300 rounded-lg p-3 text-sm resize-none w-full"
+      value={form.objective}
+      onChange={(e) => setForm({ ...form, objective: e.target.value })}
+    />
+  </div>
+
+  <div>
+    <div className="flex items-center justify-between mb-1">
+      <span className="text-xs font-medium text-slate-500">Assessment</span>
+      <VoiceInputButton
+        onTranscript={(text) =>
+          setForm((prev) => ({
+            ...prev,
+            assessment: prev.assessment ? `${prev.assessment} ${text}` : text,
+          }))
+        }
+      />
+    </div>
+    <textarea
+      placeholder="Assessment"
+      rows={3}
+      className="border border-slate-300 rounded-lg p-3 text-sm resize-none w-full"
+      value={form.assessment}
+      onChange={(e) => setForm({ ...form, assessment: e.target.value })}
+    />
+  </div>
+
+  <div>
+    <div className="flex items-center justify-between mb-1">
+      <span className="text-xs font-medium text-slate-500">Plan</span>
+      <VoiceInputButton
+        onTranscript={(text) =>
+          setForm((prev) => ({
+            ...prev,
+            plan: prev.plan ? `${prev.plan} ${text}` : text,
+          }))
+        }
+      />
+    </div>
+    <textarea
+      placeholder="Plan"
+      rows={3}
+      className="border border-slate-300 rounded-lg p-3 text-sm resize-none w-full"
+      value={form.plan}
+      onChange={(e) => setForm({ ...form, plan: e.target.value })}
+    />
+  </div>
+</div>
                 <div className="flex justify-end">
                   <button type="submit" className="bg-blue-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
                     Save Review
@@ -1024,6 +1104,14 @@ async function confirmDischarge() {
           {user?.role === "NURSE" && (
             <Card title="New Nursing Note" icon={FileText} className="border-green-200 bg-green-50/30">
               <form onSubmit={createNursingNote} className="space-y-3">
+  <div className="flex items-center justify-between mb-1">
+    <span className="text-xs font-medium text-slate-500">Observation</span>
+    <VoiceInputButton
+      onTranscript={(text) =>
+        setNursingNote((prev) => (prev ? `${prev} ${text}` : text))
+      }
+    />
+  </div>
                 <textarea
                   value={nursingNote}
                   onChange={(e) => setNursingNote(e.target.value)}

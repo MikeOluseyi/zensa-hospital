@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import CreateClaimModal from "@/components/claims/CreateClaimModal";
 import RecordPaymentModal from "@/components/billing/RecordPaymentModal";
+import { useHospitalInfo } from "@/hooks/useHospitalInfo";
 
 interface InvoiceCharge {
   id: string;
@@ -129,6 +130,7 @@ export default function InvoiceDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [isPrinting, setIsPrinting] = useState(false);
   const [showCreateClaim, setShowCreateClaim] = useState(false);
+  const { hospital } = useHospitalInfo();
 
   useEffect(() => {
     loadInvoice();
@@ -253,6 +255,16 @@ export default function InvoiceDetailPage() {
             <span className="font-medium">Back to Invoices</span>
           </Link>
         </div>
+        <div className="print-only mb-6 pb-4 border-b-2 border-slate-900">
+  <h1 className="text-xl font-bold">{hospital?.name ?? "Zensa Health"}</h1>
+  {hospital?.address && <p className="text-xs text-slate-500">{hospital.address}</p>}
+  {hospital?.phone && <p className="text-xs text-slate-500">{hospital.phone}</p>}
+  <p className="text-sm font-semibold mt-2">INVOICE — {invoice.invoiceNumber}</p>
+  <p className="text-xs text-slate-500 mt-1">
+    {invoice.patient.firstName} {invoice.patient.lastName} · {invoice.patient.id}
+  </p>
+  <p className="text-xs text-slate-500">Date: {new Date(invoice.createdAt).toLocaleDateString()}</p>
+</div>
 
         {/* Invoice Document */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden print-shadow print:rounded-none print:border-0">
@@ -340,12 +352,6 @@ export default function InvoiceDetailPage() {
                       <span className="font-semibold text-emerald-600">-{formatCurrency(invoice.discount)}</span>
                     </div>
                   )}
-                  <div className="border-t border-gray-200 pt-2 mt-2">
-                    <div className="flex justify-between md:justify-end gap-8 text-lg font-bold text-gray-900">
-                      <span>Total Amount</span>
-                      <span>{formatCurrency(invoice.total)}</span>
-                    </div>
-                  </div>
                   {invoice.paidAmount > 0 && (
                     <div className="flex justify-between md:justify-end gap-8 text-sm pt-1">
                       <span className="text-gray-500">Amount Paid</span>
@@ -441,12 +447,6 @@ export default function InvoiceDetailPage() {
                     <span className="font-semibold text-emerald-600">-{formatCurrency(invoice.discount)}</span>
                   </div>
                 )}
-                <div className="border-t border-gray-200 pt-3 mt-3">
-                  <div className="flex justify-between md:justify-end gap-8 text-xl font-bold text-gray-900">
-                    <span>Total Amount Due</span>
-                    <span>{formatCurrency(invoice.total)}</span>
-                  </div>
-                </div>
                 {invoice.paidAmount > 0 && (
                   <>
                     <div className="flex justify-between md:justify-end gap-8 text-sm pt-2">
@@ -496,24 +496,13 @@ export default function InvoiceDetailPage() {
                   <Plus className="w-4 h-4" />
                   Create Claim
                 </button>
-              </div>
-
-              <div className="flex items-center gap-3">
                 <button
-                  onClick={handlePrint}
-                  disabled={isPrinting}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
-                >
-                  <Printer className="w-4 h-4" />
-                  Print Invoice
-                </button>
-                <button
-                  onClick={handlePrint}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-medium hover:bg-slate-800 transition-all shadow-sm"
-                >
-                  <Download className="w-4 h-4" />
-                  Save as PDF
-                </button>
+  onClick={() => window.print()}
+  className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-slate-50 transition-colors no-print"
+>
+  <Printer size={16} />
+  Print Invoice
+</button>
               </div>
             </div>
           </div>
@@ -540,10 +529,10 @@ export default function InvoiceDetailPage() {
       </div>
 
       {/* Modals */}
-      // AFTER
       <CreateClaimModal
         open={showCreateClaim}
         invoiceId={invoice.id}
+        invoiceSubtotal={invoice.subtotal}
         patientId={invoice.patient.id}
         onClose={() => setShowCreateClaim(false)}
         onCreated={() => {

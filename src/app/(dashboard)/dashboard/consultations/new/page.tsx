@@ -9,6 +9,7 @@ import {HospitalService, ServiceAPI } from "@/services/services";
 import ServiceSearch from "@/components/search/ServiceSearch";
 import InventorySearch from "@/components/inventory/InventorySearch";
 import MedicationScheduleFields from "@/components/medications/MedicationScheduleFields";
+import VoiceInputButton from "@/components/common/VoiceInputButton";
 import {
   ArrowLeft,
   Stethoscope,
@@ -743,10 +744,15 @@ async function resumeConsultation() {
 
       {/* Chief Complaint */}
       <div className={sectionClass}>
+        <div className="flex items-center justify-between">
         <label className={labelClass}>
           <HeartPulse size={14} className="inline mr-1 text-slate-400" />
           Chief Complaint *
         </label>
+        <VoiceInputButton
+            onTranscript={(text) => setChiefComplaint((prev) => (prev ? `${prev} ${text}` : text))}
+          />
+          </div>
         <textarea
           placeholder="Patient's primary complaint..."
           value={chiefComplaint}
@@ -758,10 +764,15 @@ async function resumeConsultation() {
 
       {/* History */}
       <div className={sectionClass}>
+        <div className="flex items-center justify-between">
         <label className={labelClass}>
           <ClipboardList size={14} className="inline mr-1 text-slate-400" />
           History of Present Illness
         </label>
+        <VoiceInputButton
+            onTranscript={(text) => setHistoryOfComplaint((prev) => (prev ? `${prev} ${text}` : text))}
+          />
+          </div>
         <textarea
           placeholder="Detailed history of the complaint..."
           value={historyOfComplaint}
@@ -773,10 +784,15 @@ async function resumeConsultation() {
 
       {/* Diagnosis */}
       <div className={sectionClass}>
+         <div className="flex items-center justify-between">
         <label className={labelClass}>
           <Stethoscope size={14} className="inline mr-1 text-slate-400" />
           Diagnosis *
         </label>
+        <VoiceInputButton
+            onTranscript={(text) => setDiagnosis((prev) => (prev ? `${prev} ${text}` : text))}
+          />
+          </div>
         <textarea
           placeholder="Clinical diagnosis..."
           value={diagnosis}
@@ -809,10 +825,15 @@ async function resumeConsultation() {
 
       {/* Treatment */}
       <div className={sectionClass}>
+        <div className="flex items-center justify-between">
         <label className={labelClass}>
           <FileText size={14} className="inline mr-1 text-slate-400" />
           Treatment Plan
         </label>
+        <VoiceInputButton
+            onTranscript={(text) => setTreatment((prev) => (prev ? `${prev} ${text}` : text))}
+          />
+          </div>
         <textarea
           placeholder="Treatment plan and recommendations..."
           value={treatment}
@@ -824,10 +845,15 @@ async function resumeConsultation() {
 
       {/* Clinical Notes */}
       <div className={sectionClass}>
+        <div className="flex items-center justify-between">
         <label className={labelClass}>
           <FileText size={14} className="inline mr-1 text-slate-400" />
           Clinical Notes
         </label>
+        <VoiceInputButton
+            onTranscript={(text) => setNotes((prev) => (prev ? `${prev} ${text}` : text))}
+          />
+          </div>
         <textarea
           placeholder="Additional clinical observations..."
           value={notes}
@@ -1058,15 +1084,26 @@ async function resumeConsultation() {
               </div>
 
               <div>
-                <label className="text-xs font-medium text-slate-600">Instructions</label>
-                <textarea
-                  placeholder="e.g. Take after meals, Avoid alcohol..."
-                  value={prescription.instructions}
-                  onChange={(e) => updatePrescription(index, "instructions", e.target.value)}
-                  className="mt-1 w-full border border-amber-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none resize-none"
-                  rows={2}
-                />
-              </div>
+  <div className="flex items-center justify-between">
+    <label className="text-xs font-medium text-slate-600">Instructions</label>
+    <VoiceInputButton
+      onTranscript={(text) =>
+        updatePrescription(
+          index,
+          "instructions",
+          prescription.instructions ? `${prescription.instructions} ${text}` : text
+        )
+      }
+    />
+  </div>
+  <textarea
+    placeholder="e.g. Take after meals, Avoid alcohol..."
+    value={prescription.instructions}
+    onChange={(e) => updatePrescription(index, "instructions", e.target.value)}
+    className="mt-1 w-full border border-amber-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none resize-none"
+    rows={2}
+  />
+</div>
             </div>
           ))}
         </div>
@@ -1221,7 +1258,12 @@ async function resumeConsultation() {
 )}
 
         <div>
+          <div className="flex items-center justify-between">
           <label className={labelClass}>Reason for Admission *</label>
+          <VoiceInputButton
+            onTranscript={(text) => setAdmissionReason((prev) => (prev ? `${prev} ${text}` : text))}
+          />
+          </div>
           <textarea
             placeholder="Clinical reason for admission..."
             value={admissionReason}
@@ -1232,7 +1274,12 @@ async function resumeConsultation() {
           />
         </div>
         <div>
+          <div className="flex items-center justify-between">
           <label className={labelClass}>Additional Notes</label>
+          <VoiceInputButton
+            onTranscript={(text) => setAdmissionNotes((prev) => (prev ? `${prev} ${text}` : text))}
+          />
+          </div>
           <textarea
             placeholder="Any special requirements or notes..."
             value={admissionNotes}

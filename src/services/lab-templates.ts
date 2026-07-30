@@ -261,4 +261,231 @@ export const labTemplates: Record<string, LabTemplate> = {
     ]
   },
 
+  // 80051: Electrolyte panel (Sodium, Potassium, Chloride, CO2)[cite: 1]
+  "80051": {
+    cptCode: "80051",
+    serviceName: "Electrolyte panel (Sodium, Potassium, Chloride, CO2)",
+    fields: [
+      { name: "sodium", label: "Sodium", type: "number", unit: "mEq/L", referenceRange: "135-145" },
+      { name: "potassium", label: "Potassium", type: "number", unit: "mEq/L", referenceRange: "3.5-5.2" },
+      { name: "chloride", label: "Chloride", type: "number", unit: "mEq/L", referenceRange: "96-106" },
+      { name: "co2", label: "Carbon Dioxide (CO2)", type: "number", unit: "mEq/L", referenceRange: "23-29" }
+    ],
+  },
+
+  // 80069: Renal function panel (Albumin, BUN, Creatinine, Electrolytes)[cite: 1]
+  "80069": {
+    cptCode: "80069",
+    serviceName: "Renal function panel (Albumin, BUN, Creatinine, Electrolytes)",
+    fields: [
+      { name: "albumin", label: "Albumin", type: "number", unit: "g/dL", referenceRange: "3.4-5.4" },
+      { name: "bun", label: "BUN", type: "number", unit: "mg/dL", referenceRange: "6-20" },
+      { name: "creatinine", label: "Creatinine", type: "number", unit: "mg/dL", referenceRange: "0.6-1.3" },
+      { name: "sodium", label: "Sodium", type: "number", unit: "mEq/L", referenceRange: "135-145" },
+      { name: "potassium", label: "Potassium", type: "number", unit: "mEq/L", referenceRange: "3.5-5.2" },
+      { name: "chloride", label: "Chloride", type: "number", unit: "mEq/L", referenceRange: "96-106" },
+      { name: "co2", label: "Carbon Dioxide (CO2)", type: "number", unit: "mEq/L", referenceRange: "23-29" },
+      { name: "calcium", label: "Calcium", type: "number", unit: "mg/dL", referenceRange: "8.6-10.3" },
+      { name: "phosphorus", label: "Phosphorus", type: "number", unit: "mg/dL", referenceRange: "2.5-4.5" }
+    ],
+  },
+
+  // 80074: Acute hepatitis panel[cite: 1]
+  "80074": {
+    cptCode: "80074",
+    serviceName: "Acute hepatitis panel",
+    fields: [
+      { name: "hav_igm", label: "Hepatitis A IgM Antibody", type: "select", options: ["Reactive", "Non-Reactive"] },
+      { name: "hbsag", label: "Hepatitis B Surface Antigen", type: "select", options: ["Reactive", "Non-Reactive"] },
+      { name: "hbcab_igm", label: "Hepatitis B Core IgM Antibody", type: "select", options: ["Reactive", "Non-Reactive"] },
+      { name: "hcv_ab", label: "Hepatitis C Antibody", type: "select", options: ["Reactive", "Non-Reactive"] }
+    ],
+  },
+
+  // 81001: Urinalysis, automated with microscopy[cite: 1]
+  "81001": {
+    cptCode: "81001",
+    serviceName: "Urinalysis, automated with microscopy",
+    fields: [
+      { name: "color", label: "Color", type: "text", referenceRange: "Yellow" },
+      { name: "clarity", label: "Clarity", type: "text", referenceRange: "Clear" },
+      { name: "ph", label: "pH", type: "number", referenceRange: "5.0-8.0" },
+      { name: "specific_gravity", label: "Specific Gravity", type: "number", referenceRange: "1.005-1.030" },
+      { name: "protein", label: "Protein", type: "select", options: ["Negative", "Trace", "1+", "2+", "3+"], referenceRange: "Negative" },
+      { name: "glucose", label: "Glucose", type: "select", options: ["Negative", "Trace", "1+", "2+", "3+"], referenceRange: "Negative" },
+      { name: "ketones", label: "Ketones", type: "select", options: ["Negative", "Trace", "Small", "Moderate", "Large"], referenceRange: "Negative" },
+      { name: "leukocyte_esterase", label: "Leukocyte Esterase", type: "select", options: ["Negative", "Trace", "Small", "Moderate", "Large"], referenceRange: "Negative" },
+      { name: "nitrite", label: "Nitrite", type: "select", options: ["Positive", "Negative"], referenceRange: "Negative" },
+      { name: "wbc", label: "WBCs", type: "text", unit: "/HPF", referenceRange: "0-5" },
+      { name: "rbc", label: "RBCs", type: "text", unit: "/HPF", referenceRange: "0-2" },
+      { name: "bacteria", label: "Bacteria", type: "select", options: ["None", "Few", "Moderate", "Many"], referenceRange: "None" }
+    ],
+  },
+
+  // 82040: Albumin blood test[cite: 1]
+  "82040": {
+    cptCode: "82040",
+    serviceName: "Albumin blood test",
+    fields: [
+      { name: "albumin", label: "Albumin", type: "number", unit: "g/dL", referenceRange: "3.4-5.4" }
+    ],
+  },
+
+  // 82150: Amylase blood test[cite: 1]
+  "82150": {
+    cptCode: "82150",
+    serviceName: "Amylase blood test",
+    fields: [
+      { name: "amylase", label: "Amylase", type: "number", unit: "U/L", referenceRange: "30-110" }
+    ],
+  },
+
+  // 82247: Bilirubin, total, blood test[cite: 1]
+  "82247": {
+    cptCode: "82247",
+    serviceName: "Bilirubin, total, blood test",
+    fields: [
+      { name: "bilirubin_total", label: "Total Bilirubin", type: "number", unit: "mg/dL", referenceRange: "0.1-1.2" }
+    ],
+  },
+
+  // 82565: Creatinine blood test[cite: 1]
+  "82565": {
+    cptCode: "82565",
+    serviceName: "Creatinine blood test",
+    fields: [
+      { name: "creatinine", label: "Creatinine", type: "number", unit: "mg/dL", referenceRange: "0.6-1.3" }
+    ],
+  },
+
+  // 82607: Vitamin B-12 level[cite: 1]
+  "82607": {
+    cptCode: "82607",
+    serviceName: "Vitamin B-12 level",
+    fields: [
+      { name: "vitamin_b12", label: "Vitamin B-12", type: "number", unit: "pg/mL", referenceRange: "232-1245" }
+    ],
+  },
+
+  // 82728: Ferritin test[cite: 1]
+  "82728": {
+    cptCode: "82728",
+    serviceName: "Ferritin test",
+    fields: [
+      { name: "ferritin", label: "Ferritin", type: "number", unit: "ng/mL", referenceRange: "12-300" }
+    ],
+  },
+
+  // 83540: Iron test[cite: 1]
+  "83540": {
+    cptCode: "83540",
+    serviceName: "Iron test",
+    fields: [
+      { name: "iron", label: "Total Iron", type: "number", unit: "mcg/dL", referenceRange: "60-170" }
+    ],
+  },
+
+  // 83690: Lipase blood test[cite: 1]
+  "83690": {
+    cptCode: "83690",
+    serviceName: "Lipase blood test",
+    fields: [
+      { name: "lipase", label: "Lipase", type: "number", unit: "U/L", referenceRange: "0-160" }
+    ],
+  },
+
+  // 83735: Magnesium level[cite: 1]
+  "83735": {
+    cptCode: "83735",
+    serviceName: "Magnesium level",
+    fields: [
+      { name: "magnesium", label: "Magnesium", type: "number", unit: "mg/dL", referenceRange: "1.7-2.2" }
+    ],
+  },
+
+  // 84439: Thyroxine (T4) test[cite: 1]
+  "84439": {
+    cptCode: "84439",
+    serviceName: "Thyroxine (T4) test",
+    fields: [
+      { name: "free_t4", label: "Free T4", type: "number", unit: "ng/dL", referenceRange: "0.8-1.8" }
+    ],
+  },
+
+  // 84450: Transferase, aspartate amino (AST/SGOT)[cite: 1]
+  "84450": {
+    cptCode: "84450",
+    serviceName: "Transferase, aspartate amino (AST/SGOT)",
+    fields: [
+      { name: "ast", label: "AST (SGOT)", type: "number", unit: "U/L", referenceRange: "8-33" }
+    ],
+  },
+
+  // 84460: Transferase, alanine amino (ALT/SGPT)[cite: 1]
+  "84460": {
+    cptCode: "84460",
+    serviceName: "Transferase, alanine amino (ALT/SGPT)",
+    fields: [
+      { name: "alt", label: "ALT (SGPT)", type: "number", unit: "U/L", referenceRange: "4-36" }
+    ],
+  },
+
+  // 84550: Uric acid, blood test[cite: 1]
+  "84550": {
+    cptCode: "84550",
+    serviceName: "Uric acid, blood test",
+    fields: [
+      { name: "uric_acid", label: "Uric Acid", type: "number", unit: "mg/dL", referenceRange: "3.5-7.2" }
+    ],
+  },
+
+  // 85018: Hemoglobin level[cite: 1]
+  "85018": {
+    cptCode: "85018",
+    serviceName: "Hemoglobin level",
+    fields: [
+      { name: "hemoglobin", label: "Hemoglobin (Hb)", type: "number", unit: "g/dL", referenceRange: "12.0-17.5" }
+    ],
+  },
+
+  // 85652: Sedimentation rate (ESR), automated[cite: 1]
+  "85652": {
+    cptCode: "85652",
+    serviceName: "Sedimentation rate (ESR), automated",
+    fields: [
+      { name: "esr", label: "Erythrocyte Sedimentation Rate (ESR)", type: "number", unit: "mm/hr", referenceRange: "0-20" }
+    ],
+  },
+
+  // 86038: Antinuclear antibodies (ANA) test[cite: 1]
+  "86038": {
+    cptCode: "86038",
+    serviceName: "Antinuclear antibodies (ANA) test",
+    fields: [
+      { name: "ana_screen", label: "ANA Screen", type: "select", options: ["Positive", "Negative"] },
+      { name: "ana_titer", label: "ANA Titer (if positive)", type: "text", referenceRange: "< 1:40" },
+      { name: "ana_pattern", label: "ANA Pattern", type: "text" }
+    ],
+  },
+
+  // 86703: HIV-1 and HIV-2 single result antibody assay[cite: 1]
+  "86703": {
+    cptCode: "86703",
+    serviceName: "HIV-1 and HIV-2 single result antibody assay",
+    fields: [
+      { name: "hiv_1_2_ab", label: "HIV-1/HIV-2 Antibodies", type: "select", options: ["Reactive", "Non-Reactive"] }
+    ],
+  },
+
+  // 87086: Urine culture, quantitative[cite: 1]
+  "87086": {
+    cptCode: "87086",
+    serviceName: "Urine culture, quantitative",
+    fields: [
+      { name: "colony_count", label: "Colony Count", type: "text", referenceRange: "< 10,000 CFU/mL" },
+      { name: "organism_identified", label: "Organism Identified", type: "text", referenceRange: "No growth" },
+      { name: "sensitivity", label: "Sensitivity", type: "text" }
+    ],
+  }
+
 };

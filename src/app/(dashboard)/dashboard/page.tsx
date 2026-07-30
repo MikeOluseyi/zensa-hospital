@@ -343,7 +343,7 @@ function PharmacistHome({ firstName }: { firstName?: string }) {
     setLoading(true);
     try {
       const [pendingRes, lowStockRes] = await Promise.all([
-        api.get("/pharmacy/pending"),
+        api.get("/pharmacy"),
         api.get("/inventory/low-stock"),
       ]);
 
@@ -373,7 +373,7 @@ function PharmacistHome({ firstName }: { firstName?: string }) {
           icon={Pill}
           color="text-pink-600"
           bgColor="bg-pink-50"
-          href="/dashboard/pharmacy"
+          href="/pharmacy"
         />
         <StatCard
           title="Low Stock Items"
@@ -388,7 +388,7 @@ function PharmacistHome({ firstName }: { firstName?: string }) {
 
       <QuickLinks
         links={[
-          { label: "Dispense Queue", href: "/dashboard/pharmacy", icon: Pill },
+          { label: "Dispense Queue", href: "/pharmacy", icon: Pill },
           { label: "Inventory", href: "/dashboard/inventory", icon: Package },
         ]}
       />
@@ -585,7 +585,7 @@ function AdminHome() {
     { label: "Occupied Beds", value: data.occupiedBeds, subtitle: `${bedOccupancyRate}% occupancy`, icon: BedDouble, color: "text-rose-600", bgColor: "bg-rose-50", href: "/dashboard/facility/beds" },
     { label: "Available Beds", value: data.availableBeds, subtitle: "Ready for patients", icon: BedDouble, color: "text-cyan-600", bgColor: "bg-cyan-50", href: "/dashboard/facility/beds" },
     { label: "Pending Invoices", value: data.pendingInvoices, subtitle: "Awaiting payment", icon: Receipt, color: "text-orange-600", bgColor: "bg-orange-50", href: "/dashboard/billing" },
-    { label: "Pending Prescriptions", value: data.pendingPrescriptions, subtitle: "Pharmacy review", icon: Pill, color: "text-pink-600", bgColor: "bg-pink-50", href: "/dashboard/pharmacy" },
+    { label: "Pending Prescriptions", value: data.pendingPrescriptions, subtitle: "Pharmacy review", icon: Pill, color: "text-pink-600", bgColor: "bg-pink-50", href: "/pharmacy" },
     { label: "Pending Lab Requests", value: data.pendingLabRequests, subtitle: "Results pending", icon: FlaskConical, color: "text-indigo-600", bgColor: "bg-indigo-50", href: "/dashboard/lab" },
   ];
 

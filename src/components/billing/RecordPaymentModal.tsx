@@ -3,6 +3,7 @@
 import { useState } from "react";
 import api from "@/lib/api";
 import { X, Wallet, Loader2, Banknote, CheckCircle2 } from "lucide-react";
+import { useHospitalInfo } from "@/hooks/useHospitalInfo";
 
 type Props = {
   invoice: any;
@@ -21,6 +22,7 @@ export default function RecordPaymentModal({ invoice, onSuccess }: Props) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const { hospital } = useHospitalInfo();
 
   const [form, setForm] = useState({
     amount: "",
@@ -53,13 +55,15 @@ export default function RecordPaymentModal({ invoice, onSuccess }: Props) {
 
     setSaving(true);
     try {
-      await api.post("/billing/payment", {
+      const res = await api.post("/billing/payment", {
         invoiceId: invoice.id,
         amount,
         method: form.method,
         reference: form.reference,
         notes: form.notes,
       });
+
+      printReceipt(res.data, invoice, amount);
 
       resetAndClose();
       onSuccess();
@@ -70,6 +74,54 @@ export default function RecordPaymentModal({ invoice, onSuccess }: Props) {
       setSaving(false);
     }
   }
+
+  function printReceipt(payment: any, invoice: any, amount: number) {
+
+    const printWindow = window.open("", "_blank", "width=380,height=500");
+
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Payment Receipt</title>
+          <style>
+            body { font-family: monospace; font-size: 12px; padding: 16px; width: 300px; }
+            .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 12px; }
+            .header h2 { font-size: 16px; margin: 0; }
+            .header p { margin: 2px 0; }
+            .row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+            .label { color: #666; }
+            .total { border-top: 1px dashed #000; margin-top: 8px; padding-top: 8px; font-weight: bold; font-size: 14px; }
+            .footer { text-align: center; margin-top: 16px; font-size: 10px; color: #666; border-top: 1px dashed #000; padding-top: 8px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h2>${hospital?.name ?? "Zensa Health"}</h2>
+            ${hospital?.address ? `<p>${hospital.address}</p>` : ""}
+            ${hospital?.phone ? `<p>${hospital.phone}</p>` : ""}
+            <p>Payment Receipt</p>
+          </div>
+          <div class="row"><span class="label">Invoice</span><span>${invoice.invoiceNumber}</span></div>
+          <div class="row"><span class="label">Patient</span><span>${invoice.patient.firstName} ${invoice.patient.lastName}</span></div>
+          <div class="row"><span class="label">Method</span><span>${payment.method}</span></div>
+          <div class="row"><span class="label">Reference</span><span>${payment.reference || "-"}</span></div>
+          <div class="row"><span class="label">Date</span><span>${new Date().toLocaleString()}</span></div>
+          <div class="row total"><span>Amount Paid</span><span>₦${amount.toLocaleString()}</span></div>
+          <div class="footer">Thank you</div>
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 250);
+
+}
 
   if (!open) {
     return (

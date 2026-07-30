@@ -7,20 +7,23 @@ import { InsuranceAPI, PatientInsurance, ClaimAPI } from "@/services/insurance";
 interface Props {
   open: boolean;
   invoiceId: string;
+  invoiceSubtotal: number;
   patientId: string;
   onClose: () => void;
   onCreated: (claimId: string) => void;
 }
 
-export default function CreateClaimModal({ open, invoiceId, patientId, onClose, onCreated }: Props) {
+export default function CreateClaimModal({ open, invoiceId, invoiceSubtotal, patientId, onClose, onCreated }: Props) {
   const [insurances, setInsurances] = useState<PatientInsurance[]>([]);
   const [insuranceId, setInsuranceId] = useState("");
+  const [claimedAmount, setClaimedAmount] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     setInsuranceId("");
+    setClaimedAmount(String(invoiceSubtotal));
     load();
   }, [open]);
 
@@ -36,11 +39,19 @@ export default function CreateClaimModal({ open, invoiceId, patientId, onClose, 
     }
   }
 
+  // AFTER
   async function handleCreate() {
     if (!insuranceId) return;
+
+    const amount = Number(claimedAmount);
+    if (!amount || amount <= 0 || amount > invoiceSubtotal) {
+      alert(`Claimed amount must be between ₦1 and ₦${invoiceSubtotal.toLocaleString()}.`);
+      return;
+    }
+
     setSubmitting(true);
     try {
-      const claim = await ClaimAPI.create({ insuranceId, invoiceId });
+      const claim = await ClaimAPI.create({ insuranceId, invoiceId, claimedAmount: amount });
       onCreated(claim.id);
       onClose();
     } catch (err: any) {
@@ -73,6 +84,23 @@ export default function CreateClaimModal({ open, invoiceId, patientId, onClose, 
           {loading ? (
             <div className="flex items-center justify-center py-6">
               <Loader2 size={20} className="animate-spin text-slate-400" />
+              {insurances.length > 0 && (
+  <div>
+    <label className="block text-sm font-medium text-slate-700 mb-1.5">Claimed Amount</label>
+    <div className="relative">
+      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">₦</span>
+      <input
+        type="number"
+        min="0"
+        max={invoiceSubtotal}
+        value={claimedAmount}
+        onChange={(e) => setClaimedAmount(e.target.value)}
+        className="w-full border border-slate-300 rounded-lg pl-8 pr-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
+      />
+    </div>
+    <p className="text-xs text-slate-400 mt-1">Invoice subtotal: ₦{invoiceSubtotal.toLocaleString()}</p>
+  </div>
+)}
             </div>
           ) : insurances.length === 0 ? (
             <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
@@ -102,6 +130,23 @@ export default function CreateClaimModal({ open, invoiceId, patientId, onClose, 
               </div>
             </div>
           )}
+          {insurances.length > 0 && (
+  <div>
+    <label className="block text-sm font-medium text-slate-700 mb-1.5">Claimed Amount</label>
+    <div className="relative">
+      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">₦</span>
+      <input
+        type="number"
+        min="0"
+        max={invoiceSubtotal}
+        value={claimedAmount}
+        onChange={(e) => setClaimedAmount(e.target.value)}
+        className="w-full border border-slate-300 rounded-lg pl-8 pr-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
+      />
+    </div>
+    <p className="text-xs text-slate-400 mt-1">Invoice subtotal: ₦{invoiceSubtotal.toLocaleString()}</p>
+  </div>
+)}
         </div>
 
         <div className="border-t border-slate-100 px-6 py-4 flex items-center justify-end gap-3 bg-white">
@@ -110,7 +155,7 @@ export default function CreateClaimModal({ open, invoiceId, patientId, onClose, 
           </button>
           <button
             onClick={handleCreate}
-            disabled={!insuranceId || submitting}
+            disabled={!insuranceId || !claimedAmount || submitting}
             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors"
           >
             {submitting ? (<><Loader2 size={14} className="animate-spin" />Creating...</>) : "Create Claim"}

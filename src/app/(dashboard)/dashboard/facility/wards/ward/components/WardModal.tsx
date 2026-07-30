@@ -17,13 +17,23 @@ interface Props {
   }) => Promise<void>;
 }
 
+const WARD_TYPES = [
+  { value: "GENERAL", label: "General" },
+  { value: "PRIVATE", label: "Private" },
+  { value: "ICU", label: "ICU" },
+  { value: "MATERNITY", label: "Maternity" },
+  { value: "PEDIATRIC", label: "Pediatric" },
+  { value: "SURGICAL", label: "Surgical" },
+];
+
 export default function WardModal({
   open,
   ward,
   onClose,
   onSaved,
   onSubmit,
-}: Props) {
+}: Props) 
+{
   const [departments, setDepartments] = useState<Department[]>([]);
   const [name, setName] = useState("");
   const [type, setType] = useState("");
@@ -130,18 +140,24 @@ export default function WardModal({
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">
-              Ward Type
-            </label>
-            <input
-              type="text"
-              value={type}
-              onChange={(e) => setType(e.target.value)}
-              placeholder="e.g. General, ICU, Maternity"
-              className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all"
-            />
-          </div>
+         <div>
+  <label className="block text-sm font-medium text-slate-700 mb-1.5">
+    Ward Type <span className="text-red-500">*</span>
+  </label>
+  <select
+    value={type}
+    onChange={(e) => setType(e.target.value)}
+    className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all"
+    required
+  >
+    <option value="">Select Ward Type</option>
+    {WARD_TYPES.map((t) => (
+      <option key={t.value} value={t.value}>
+        {t.label}
+      </option>
+    ))}
+  </select>
+</div>
 
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">
