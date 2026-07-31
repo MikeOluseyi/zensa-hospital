@@ -127,8 +127,15 @@ export const ClaimAPI = {
   getAttachments: (id: string) =>
     api.get(`/claim-Attachment/${id}`).then((r) => r.data),
 
-  addAttachment: (id: string, data: { fileName: string; fileUrl: string; type?: string }) =>
-    api.post(`/claim-Attachment/${id}`, data).then((r) => r.data),
+  addAttachment: (id: string, file: File, type: string = "OTHER") => {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("type", type);
+
+  return api.post(`/claim-Attachment/${id}`, formData, {
+    headers: { "Content-Type": "multipart/form-data" }
+  }).then((r) => r.data);
+},
 
   getTimeline: (id: string) =>
     api.get(`/claims/${id}/timeline`).then((r) => r.data),

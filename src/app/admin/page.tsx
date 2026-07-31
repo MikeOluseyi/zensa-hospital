@@ -280,7 +280,7 @@ export default function DashboardPage() {
       icon: Pill,
       color: "text-pink-600",
       bgColor: "bg-pink-50",
-      href: "/pharmacy",
+      href: "/dashboard/pharmacy",
     },
     {
       label: "Pending Lab Requests",

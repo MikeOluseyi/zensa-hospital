@@ -112,7 +112,7 @@ const roleMenus: Record<string, MenuItem[]> = {
   ],
   PHARMACIST: [
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { label: "Pharmacy", href: "/pharmacy", icon: Pill },
+    { label: "Pharmacy", href: "/dashboard/pharmacy", icon: Pill },
     { label: "Inventory", href: "/dashboard/inventory", icon: Package2 },
   ],
   LAB_SCIENTIST: [

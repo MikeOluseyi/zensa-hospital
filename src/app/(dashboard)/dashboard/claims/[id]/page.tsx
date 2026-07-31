@@ -72,7 +72,8 @@ export default function ClaimDetailPage() {
 
   const [attachments, setAttachments] = useState<any[]>([]);
   const [showAddAttachment, setShowAddAttachment] = useState(false);
-  const [attachmentForm, setAttachmentForm] = useState({ fileName: "", fileUrl: "", type: "OTHER" });
+  const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
+  const [attachmentType, setAttachmentType] = useState("OTHER");
   const [addingAttachment, setAddingAttachment] = useState(false);
 
   const [editingDraft, setEditingDraft] = useState(false);
@@ -196,21 +197,22 @@ export default function ClaimDetailPage() {
   }
 
   async function handleAddAttachment(e: React.FormEvent) {
-    e.preventDefault();
-    if (!attachmentForm.fileName.trim() || !attachmentForm.fileUrl.trim()) return;
+  e.preventDefault();
+  if (!attachmentFile) return;
 
-    setAddingAttachment(true);
-    try {
-      await ClaimAPI.addAttachment(id as string, attachmentForm);
-      setAttachmentForm({ fileName: "", fileUrl: "", type: "OTHER" });
-      setShowAddAttachment(false);
-      loadAttachments();
-    } catch {
-      alert("Failed to add attachment.");
-    } finally {
-      setAddingAttachment(false);
-    }
+  setAddingAttachment(true);
+  try {
+    await ClaimAPI.addAttachment(id as string, attachmentFile, attachmentType);
+    setAttachmentFile(null);
+    setAttachmentType("OTHER");
+    setShowAddAttachment(false);
+    loadAttachments();
+  } catch (err: any) {
+    alert(err?.response?.data?.error || "Failed to add attachment.");
+  } finally {
+    setAddingAttachment(false);
   }
+}
 
   const formatCurrency = (amount: number) => {
     return `₦${amount.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -617,86 +619,72 @@ export default function ClaimDetailPage() {
           </div>
 
           {showAddAttachment && (
-            <form onSubmit={handleAddAttachment} className="p-6 border-b border-gray-100 bg-gray-50/50 space-y-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className={labelClass}>File Name</label>
-                  <input
-                    value={attachmentForm.fileName}
-                    onChange={(e) => setAttachmentForm({ ...attachmentForm, fileName: e.target.value })}
-                    className={inputClass}
-                    placeholder="e.g. discharge_summary.pdf"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className={labelClass}>Type</label>
-                  <select
-                    value={attachmentForm.type}
-                    onChange={(e) => setAttachmentForm({ ...attachmentForm, type: e.target.value })}
-                    className={inputClass}
-                  >
-                    {ATTACHMENT_TYPES.map((t) => (
-                      <option key={t} value={t}>
-                        {t}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className={labelClass}>File URL</label>
-                <input
-                  value={attachmentForm.fileUrl}
-                  onChange={(e) => setAttachmentForm({ ...attachmentForm, fileUrl: e.target.value })}
-                  className={inputClass}
-                  placeholder="https://..."
-                  required
-                />
-              </div>
-              <div className="flex justify-end gap-3 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setShowAddAttachment(false)}
-                  className="px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-white rounded-xl border border-transparent hover:border-gray-200 transition-all"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={addingAttachment}
-                  className="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-all shadow-sm"
-                >
-                  {addingAttachment ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Add Attachment"}
-                </button>
-              </div>
-            </form>
-          )}
-
+  <form onSubmit={handleAddAttachment} className="p-6 border-b border-slate-100 bg-slate-50 space-y-3">
+    <div className="grid grid-cols-2 gap-3">
+      <div>
+        <label className={labelClass}>File</label>
+        <input
+          type="file"
+          accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx"
+          onChange={(e) => setAttachmentFile(e.target.files?.[0] ?? null)}
+          className={`${inputClass} bg-white`}
+          required
+        />
+      </div>
+      <div>
+        <label className={labelClass}>Type</label>
+        <select
+          value={attachmentType}
+          onChange={(e) => setAttachmentType(e.target.value)}
+          className={`${inputClass} bg-white`}
+        >
+          {ATTACHMENT_TYPES.map((t) => (
+            <option key={t} value={t}>{t}</option>
+          ))}
+        </select>
+      </div>
+    </div>
+    {attachmentFile && (
+      <p className="text-xs text-slate-500">
+        {attachmentFile.name} · {(attachmentFile.size / 1024).toFixed(0)} KB
+      </p>
+    )}
+    <div className="flex justify-end gap-3">
+      <button type="button" onClick={() => setShowAddAttachment(false)} className="px-4 py-2 text-sm font-medium text-slate-600">
+        Cancel
+      </button>
+      <button
+        type="submit"
+        disabled={addingAttachment || !attachmentFile}
+        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-medium"
+      >
+        {addingAttachment ? <Loader2 size={14} className="animate-spin" /> : "Upload Attachment"}
+      </button>
+    </div>
+  </form>
+)}
+          
           {attachments.length === 0 ? (
             <p className="text-sm text-gray-400 text-center py-10">No attachments yet.</p>
           ) : (
             <div className="divide-y divide-gray-50">
               {attachments.map((a) => (
-                <a
-                  key={a.id}
-                  href={a.fileUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center justify-between px-6 py-3.5 hover:bg-gray-50/50 transition-colors group"
-                >
-                  <div className="flex items-center gap-3">
-                    <Paperclip className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-800">{a.fileName}</p>
-                      <p className="text-xs text-gray-400">
-                        {a.type} · {new Date(a.attachedAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                  <ExternalLink className="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-500 transition-colors" />
-                </a>
-              ))}
+  <a
+    key={a.id}
+    href={`${process.env.NEXT_PUBLIC_API_URL?.replace("/api", "")}${a.fileUrl}`}
+    target="_blank"
+    rel="noreferrer"
+    className="flex items-center justify-between px-6 py-3 hover:bg-slate-50 transition-colors"
+  >
+    <div className="flex items-center gap-3">
+      <Paperclip size={14} className="text-slate-400" />
+      <div>
+        <p className="text-sm text-slate-800">{a.fileName}</p>
+        <p className="text-xs text-slate-400">{a.type} · {new Date(a.attachedAt).toLocaleDateString()}</p>
+      </div>
+    </div>
+  </a>
+))}
             </div>
           )}
         </div>
