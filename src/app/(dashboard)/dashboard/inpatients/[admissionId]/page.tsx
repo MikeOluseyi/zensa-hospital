@@ -6,6 +6,7 @@ import api from "@/lib/api";
 import { cn } from "@/lib/utils";
 import InventorySearch from "@/components/inventory/InventorySearch";
 import MedicationScheduleFields from "@/components/medications/MedicationScheduleFields";
+import ServiceSearch from "@/components/search/ServiceSearch";
 import VoiceInputButton from "@/components/common/VoiceInputButton";
 import {
   Activity,
@@ -25,7 +26,9 @@ import {
   Calendar,
   ArrowRightLeft,
   Plus,
-  LogOut
+  LogOut,
+  FlaskConical,
+  Loader2
 } from "lucide-react";
 
 // ─── Types ──────────────────────────────────────────────
@@ -63,6 +66,7 @@ interface Medication {
 }
 
 interface Admission {
+  visitId: string;
   id: string;
   reason: string;
   patient: { firstName: string; lastName: string; gender: string; dateOfBirth?: string };
@@ -165,6 +169,9 @@ export default function InpatientChart({ params }: { params: Promise<{ admission
   const [medications, setMedications] = useState<Medication[]>([]);
   const [nursingNotes, setNursingNotes] = useState<any[]>([]);
   const [vitals, setVitals] = useState<Vital[]>([]);
+  const [stagedAdmissionProcedures, setStagedAdmissionProcedures] = useState<any[]>([]);
+  const [sendingAdmissionProcIndex, setSendingAdmissionProcIndex] = useState<number | null>(null);
+  const [procedures, setProcedures] = useState<any[]>([]);
   const [doctors, setDoctors] = useState<any[]>([]);
   const [timeline, setTimeline] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("overview");
@@ -209,6 +216,9 @@ export default function InpatientChart({ params }: { params: Promise<{ admission
     };
     load();
   }, []);
+  useEffect(() => {
+  if (admission?.visitId) fetchProcedures();
+}, [admission?.visitId]);
 
   async function fetchAdmission() {
     const res = await api.get(`/admissions/${admissionId}`);
@@ -231,6 +241,14 @@ export default function InpatientChart({ params }: { params: Promise<{ admission
   async function fetchVitals() {
     try { setVitals((await api.get(`/vitals/admission/${admissionId}`)).data); } catch {}
   }
+  async function fetchProcedures() {
+  try {
+    const res = await api.get(`/procedure/visit/${admission?.visitId}`);
+    setProcedures(res.data);
+  } catch (err) {
+    console.error("Failed to fetch procedures:", err);
+  }
+}
   async function fetchTimeline() {
     try { setTimeline((await api.get(`/admission-timeline/${admissionId}`)).data); } catch {}
   }
@@ -310,6 +328,47 @@ async function addDoseTime(orderId: string) {
     alert(err.response?.data?.error || "Failed to add dose time.");
   } finally {
     setSavingDose(false);
+  }
+}
+  // Stage instead of order immediately
+function stageProcedure(service: { hospitalServiceId: string; serviceId: string; name: string; code: string; description: string }) {
+  const alreadyStaged = stagedAdmissionProcedures.some((p) => p.hospitalServiceId === service.hospitalServiceId);
+  const alreadyOrdered = procedures.some((p: any) => p.medicalRecordService?.hospitalService?.hospitalServiceId === service.hospitalServiceId);
+
+  if (alreadyStaged || alreadyOrdered) {
+    alert("Already added");
+    return;
+  }
+
+  setStagedAdmissionProcedures([...stagedAdmissionProcedures, { ...service, notes: "" }]);
+}
+
+function updateStagedProcedureNotes(index: number, notes: string) {
+  const updated = [...stagedAdmissionProcedures];
+  updated[index] = { ...updated[index], notes };
+  setStagedAdmissionProcedures(updated);
+}
+
+function removeStagedProcedure(index: number) {
+  setStagedAdmissionProcedures(stagedAdmissionProcedures.filter((_, i) => i !== index));
+}
+
+async function sendAdmissionProcedureToLab(index: number) {
+  if (!admission) return;
+  const staged = stagedAdmissionProcedures[index];
+  setSendingAdmissionProcIndex(index);
+  try {
+    await api.post("/procedure/admission", {
+      admissionId: admission.id,
+      hospitalServiceId: staged.hospitalServiceId,
+      notes: staged.notes,
+    });
+    setStagedAdmissionProcedures(stagedAdmissionProcedures.filter((_, i) => i !== index));
+    fetchProcedures();
+  } catch (err: any) {
+    alert(err.response?.data?.error || "Failed to order procedure.");
+  } finally {
+    setSendingAdmissionProcIndex(null);
   }
 }
   async function changeDoctor(e: React.FormEvent) {
@@ -476,6 +535,7 @@ async function confirmDischarge() {
           { id: "timeline", label: "Timeline", icon: Clock },
           { id: "vitals", label: "Vitals", icon: HeartPulse },
           { id: "medications", label: "Medications", icon: Pill },
+          { id: "labs", label: "Lab & Procedures", icon: FlaskConical },
           { id: "notes", label: "Clinical Notes", icon: FileText },
         ].map((tab) => (
           <button
@@ -511,12 +571,14 @@ async function confirmDischarge() {
                           event.type === "DOCTOR_NOTE" && "bg-blue-50 text-blue-600",
                           event.type === "NURSING_NOTE" && "bg-green-50 text-green-600",
                           event.type === "VITALS" && "bg-rose-50 text-rose-600",
+                          event.type === "LAB_TESTS" && "bg-amber-300 text-amber-300",
                           event.type === "MEDICATION" && "bg-amber-50 text-amber-600",
                           event.type === "DOCTOR_TRANSFER" && "bg-purple-50 text-purple-600",
                         )}>
                           {event.type === "DOCTOR_NOTE" && <Stethoscope size={14} />}
                           {event.type === "NURSING_NOTE" && <FileText size={14} />}
                           {event.type === "VITALS" && <HeartPulse size={14} />}
+                          {event.type === "LAB_TESTS" && <FlaskConical size={14} />}
                           {event.type === "MEDICATION" && <Pill size={14} />}
                           {event.type === "DOCTOR_TRANSFER" && <ArrowRightLeft size={14} />}
                         </div>
@@ -528,6 +590,7 @@ async function confirmDischarge() {
                             {event.type === "DOCTOR_NOTE" && "Doctor Review"}
                             {event.type === "NURSING_NOTE" && "Nursing Note"}
                             {event.type === "VITALS" && "Vital Signs Recorded"}
+                            {event.type === "LAB_TESTS" && "Lab and Results"}
                             {event.type === "MEDICATION" && "Medication Update"}
                             {event.type === "DOCTOR_TRANSFER" && "Doctor Handover"}
                           </p>
@@ -843,6 +906,90 @@ async function confirmDischarge() {
           </Card>
         </div>
       )}
+
+      {activeTab === "labs" && (
+  <div className="space-y-6">
+   // AFTER
+    {user?.role === "DOCTOR" && (
+      <Card title="Order Lab / Procedure" icon={FlaskConical} className="border-violet-200 bg-violet-50/30">
+        <ServiceSearch category="SPECIALIST" onSelect={stageProcedure} />
+
+        {stagedAdmissionProcedures.length > 0 && (
+          <div className="space-y-3 mt-4">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              Not yet sent — review before ordering
+            </p>
+            {stagedAdmissionProcedures.map((staged, index) => (
+              <div key={index} className="p-3 bg-white rounded-lg border border-violet-200 border-dashed">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-sm">{staged.name}</span>
+                  <span className="font-mono text-xs bg-slate-100 border rounded px-1.5 py-0.5">{staged.code}</span>
+                </div>
+                <textarea
+                  placeholder="Notes (optional)..."
+                  value={staged.notes}
+                  onChange={(e) => updateStagedProcedureNotes(index, e.target.value)}
+                  className="mt-2 w-full border border-violet-200 rounded-lg px-3 py-2 text-sm resize-none"
+                  rows={2}
+                />
+                <div className="flex items-center gap-2 mt-2">
+                  <button
+                    onClick={() => sendAdmissionProcedureToLab(index)}
+                    disabled={sendingAdmissionProcIndex === index}
+                    className="flex items-center gap-1.5 bg-violet-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-violet-700 disabled:opacity-50"
+                  >
+                    {sendingAdmissionProcIndex === index ? <Loader2 size={12} className="animate-spin" /> : null}
+                    Send to Lab
+                  </button>
+                  <button
+                    onClick={() => removeStagedProcedure(index)}
+                    className="text-xs text-slate-500 hover:text-red-600 font-medium"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+    )}
+    <Card title="Procedures & Results" icon={FlaskConical}>
+      {procedures.length === 0 ? (
+        <EmptyState message="No procedures ordered" icon={FlaskConical} />
+      ) : (
+        <div className="space-y-3">
+          {procedures.map((p: any) => (
+            <div key={p.id} className="p-4 rounded-lg border border-slate-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-slate-900">
+                    {p.medicalRecordService?.hospitalService?.service?.name}
+                  </p>
+                  {p.notes && <p className="text-sm text-slate-500 mt-0.5">{p.notes}</p>}
+                </div>
+                <StatusBadge status={p.status} />
+              </div>
+              {p.labResult?.data && (
+                <div className="grid grid-cols-2 gap-2 mt-3">
+                  {Object.entries(p.labResult.data).map(([key, val]: any) => (
+                    <div key={key} className="bg-slate-50 rounded-lg border border-slate-100 p-2">
+                      <p className="text-[10px] text-slate-400 uppercase">{key.replace(/_/g, " ")}</p>
+                      <p className="text-sm font-semibold text-slate-800">{String(val)}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {p.procedureResult?.results && !p.labResult && (
+                <p className="text-sm text-slate-700 bg-slate-50 rounded-lg p-2 mt-3">{p.procedureResult.results}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
+  </div>
+)}
 
       {/* MEDICATIONS TAB */}
       {activeTab === "medications" && (

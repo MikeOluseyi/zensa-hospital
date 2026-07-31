@@ -7,3 +7,8 @@ export async function getPatients() {
 
   return response.data;
 }
+
+export const PatientBulkImportAPI = {
+  import: (patients: any[]) =>
+    api.post("/patients/bulk-import", { patients }).then((r) => r.data),
+};

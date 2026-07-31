@@ -34,6 +34,8 @@ import {
   ArrowRightLeft,
   Clock,
   FlaskConical,
+  Droplet,
+  Dna,
 } from "lucide-react";
 
 interface Patient {
@@ -47,6 +49,8 @@ interface Patient {
   phone: string;
   email: string;
   address: string;
+  bloodGroup: string;
+  genotype: string;
   stateOfOrigin: string;
   localGovernmentOfOrigin: string;
   maritalStatus: string;
@@ -209,6 +213,8 @@ export default function PatientProfilePage({
             <InfoRow icon={Phone} label="Phone" value={patient.phone} />
             <InfoRow icon={Mail} label="Email" value={patient.email} />
             <InfoRow icon={MapPin} label="Address" value={patient.address} />
+            <InfoRow icon={Droplet} label="bloodGroup" value={patient.bloodGroup} />
+            <InfoRow icon={Dna} label="genotype" value={patient.genotype} />
             <InfoRow icon={MapPin} label="State of Origin" value={patient.stateOfOrigin} />
             <InfoRow icon={MapPin} label="LGA" value={patient.localGovernmentOfOrigin} />
             <InfoRow icon={Users} label="Marital Status" value={patient.maritalStatus} />

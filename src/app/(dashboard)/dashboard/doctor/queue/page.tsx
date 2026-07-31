@@ -307,7 +307,7 @@ async function resumeOrContinue(appt: OngoingAppointment) {
                         ) : (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
                             <AlertTriangle size={12} />
-                            No vitals recorded
+                            Vitals In
                           </span>
                         )}
                       </div>

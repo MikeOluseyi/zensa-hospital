@@ -16,6 +16,8 @@ interface PatientForm {
   phone: string;
   email: string;
   address: string;
+  bloodGroup: string;
+  genotype: string;
   stateOfOrigin: string;
   localGovernmentOfOrigin: string;
   maritalStatus: string;
@@ -41,6 +43,8 @@ export default function NewPatientPage() {
     phone: "",
     email: "",
     address: "",
+    bloodGroup: "",
+    genotype: "",
     stateOfOrigin: "",
     localGovernmentOfOrigin: "",
     maritalStatus: "",
@@ -137,6 +141,34 @@ export default function NewPatientPage() {
               <label className={labelClass}>Email</label>
               <input type="email" name="email" placeholder="Email address" onChange={handleChange} className={inputClass} />
             </div>
+            <div>
+  <label className={labelClass}>Blood Group</label>
+  <select name="bloodGroup" onChange={handleChange} className={selectClass} required>
+    <option value="">Select Blood Group</option>
+    <option value="A+">A+</option>
+    <option value="A-">A-</option>
+    <option value="B+">B+</option>
+    <option value="B-">B-</option>
+    <option value="AB+">AB+</option>
+    <option value="AB-">AB-</option>
+    <option value="O+">O+</option>
+    <option value="O-">O-</option>
+  </select>
+</div>
+
+<div>
+  <label className={labelClass}>Genotype</label>
+  <select name="genotype" onChange={handleChange} className={selectClass} required>
+    <option value="">Select Genotype</option>
+    <option value="AA">AA</option>
+    <option value="AS">AS</option>
+    <option value="AC">AC</option>
+    <option value="SS">SS</option>
+    <option value="SC">SC</option>
+    <option value="CC">CC</option>
+  </select>
+</div>
+
             <div>
               <label className={labelClass}>State of Origin</label>
               <input name="stateOfOrigin" placeholder="State" onChange={handleChange} className={inputClass} />

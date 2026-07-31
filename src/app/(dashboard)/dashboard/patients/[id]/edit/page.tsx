@@ -15,6 +15,8 @@ interface PatientForm {
   phone: string;
   email: string;
   address: string;
+  bloodGroup: string;
+  genotype: string;
   stateOfOrigin: string;
   localGovernmentOfOrigin: string;
   maritalStatus: string;
@@ -35,6 +37,8 @@ const EMPTY_FORM: PatientForm = {
   phone: "",
   email: "",
   address: "",
+  bloodGroup: "",
+  genotype: "",
   stateOfOrigin: "",
   localGovernmentOfOrigin: "",
   maritalStatus: "",
@@ -78,6 +82,8 @@ export default function EditPatientPage() {
         phone: p.phone || "",
         email: p.email || "",
         address: p.address || "",
+        bloodGroup: p.bloodGroup || "",
+        genotype: p.genotype || "",
         stateOfOrigin: p.stateOfOrigin || "",
         localGovernmentOfOrigin: p.localGovernmentOfOrigin || "",
         maritalStatus: p.maritalStatus || "",
@@ -230,6 +236,34 @@ export default function EditPatientPage() {
             </div>
           </div>
         </div>
+                    {/* Blood Group Selection */}
+            <div>
+              <label className={labelClass}>Blood Group</label>
+              <select name="bloodGroup" value={form.bloodGroup} onChange={handleChange} className={selectClass}>
+                <option value="">Select Blood Group</option>
+                <option value="A_POSITIVE">A+</option>
+                <option value="A_NEGATIVE">A-</option>
+                <option value="B_POSITIVE">B+</option>
+                <option value="B_NEGATIVE">B-</option>
+                <option value="AB_POSITIVE">AB+</option>
+                <option value="AB_NEGATIVE">AB-</option>
+                <option value="O_POSITIVE">O+</option>
+                <option value="O_NEGATIVE">O-</option>
+              </select>
+            </div>
+
+            {/* Genotype Selection */}
+            <div>
+              <label className={labelClass}>Genotype</label>
+              <select name="genotype" value={form.genotype} onChange={handleChange} className={selectClass}>
+                <option value="">Select Genotype</option>
+                <option value="AA">AA</option>
+                <option value="AS">AS</option>
+                <option value="AC">AC</option>
+                <option value="SS">SS</option>
+                <option value="SC">SC</option>
+              </select>
+            </div>
 
         {/* Address */}
         <div className="p-6 border-b border-slate-100">
@@ -239,6 +273,7 @@ export default function EditPatientPage() {
             <textarea name="address" value={form.address} onChange={handleChange} className={inputClass} rows={3} />
           </div>
         </div>
+        
 
         {/* Next of Kin */}
         <div className="p-6 border-b border-slate-100">

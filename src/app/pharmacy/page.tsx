@@ -1,3 +1,4 @@
+// AFTER
 "use client";
 
 import { useEffect, useState, useRef } from "react";
@@ -10,6 +11,9 @@ import {
   User,
   Clock,
   Printer,
+  BedDouble,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import { useHospitalInfo } from "@/hooks/useHospitalInfo";
 
@@ -22,6 +26,22 @@ interface Patient {
 
 interface MedicalRecord {
   patient: Patient;
+}
+
+interface AdmissionOrder {
+  id: string;
+  medicationName: string;
+  dosage: string;
+  frequency: string;
+  duration: string;
+  route: string;
+  createdAt: string;
+  doctor: { firstName: string; lastName: string };
+  inventoryItem?: { id: string; name: string; quantity: number; sellingPrice: number | null } | null;
+  admission: {
+    patient: { firstName: string; lastName: string; patientNumber: string };
+    bed: { bedNumber: string; ward: { name: string } };
+  };
 }
 
 interface Prescription {
@@ -40,7 +60,9 @@ interface Prescription {
 
 export default function PharmacyPage() {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
+  const [admissionOrders, setAdmissionOrders] = useState<AdmissionOrder[]>([]);
   const [loading, setLoading] = useState(true);
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
   const [printingId, setPrintingId] = useState<string | null>(null);
   const { hospital } = useHospitalInfo();
@@ -48,8 +70,12 @@ export default function PharmacyPage() {
   async function loadPrescriptions() {
     try {
       setLoading(true);
-      const res = await api.get("/pharmacy/pending");
-      setPrescriptions(res.data);
+      const [presRes, admRes] = await Promise.all([
+        api.get("/pharmacy/pending"),
+        api.get("/admission-medications/pending-verification"),
+      ]);
+      setPrescriptions(presRes.data);
+      setAdmissionOrders(admRes.data);
     } catch {
       alert("Failed to load prescriptions.");
     } finally {
@@ -60,6 +86,29 @@ export default function PharmacyPage() {
   useEffect(() => {
     loadPrescriptions();
   }, []);
+
+  async function verifyOrder(orderId: string) {
+    try {
+      await api.patch(`/admission-medications/${orderId}/verify`);
+      loadPrescriptions();
+    } catch (err: any) {
+      alert(err.response?.data?.error || "Failed to verify order.");
+    }
+  }
+
+  async function rejectOrder(orderId: string) {
+    const reason = prompt("Reason for rejecting this order:");
+    if (!reason) return;
+    setRejectingId(orderId);
+    try {
+      await api.patch(`/admission-medications/${orderId}/reject`, { rejectionReason: reason });
+      loadPrescriptions();
+    } catch (err: any) {
+      alert(err.response?.data?.error || "Failed to reject order.");
+    } finally {
+      setRejectingId(null);
+    }
+  }
 
   async function dispense(id: string) {
     try {
@@ -211,6 +260,53 @@ export default function PharmacyPage() {
           </p>
         </div>
       </div>
+
+      {/* Inpatient Medication Orders — Awaiting Verification */}
+      {admissionOrders.length > 0 && (
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100">
+            <h2 className="font-semibold text-slate-900 flex items-center gap-2">
+              <BedDouble size={18} className="text-violet-600" />
+              Inpatient Orders Awaiting Verification
+            </h2>
+          </div>
+          <div className="divide-y divide-slate-100">
+            {admissionOrders.map((order) => (
+              <div key={order.id} className="flex items-center justify-between px-6 py-4">
+                <div>
+                  <p className="font-medium text-slate-900">{order.medicationName}</p>
+                  <p className="text-sm text-slate-600">
+                    {order.dosage} · {order.route} · {order.frequency}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {order.admission.patient.firstName} {order.admission.patient.lastName} · {order.admission.patient.patientNumber} · {order.admission.bed.ward.name} Bed {order.admission.bed.bedNumber}
+                  </p>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Ordered by Dr. {order.doctor.firstName} {order.doctor.lastName}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => verifyOrder(order.id)}
+                    className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-xs font-medium transition-colors"
+                  >
+                    <CheckCircle2 size={12} />
+                    Verify
+                  </button>
+                  <button
+                    onClick={() => rejectOrder(order.id)}
+                    disabled={rejectingId === order.id}
+                    className="flex items-center gap-1.5 bg-white border border-red-200 text-red-600 hover:bg-red-50 px-3 py-2 rounded-lg text-xs font-medium transition-colors disabled:opacity-50"
+                  >
+                    <XCircle size={12} />
+                    Reject
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Table */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">

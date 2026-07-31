@@ -12,7 +12,7 @@ interface Patient {
   lastName: string;
   gender: string;
   phone: string;
-  createdAt: string;
+  dateOfBirth: string;
 }
 
 export default function PatientsPage() {
@@ -67,6 +67,13 @@ export default function PatientsPage() {
             <Plus size={16} />
             Add Patient
           </Link>
+          <Link
+            href="/dashboard/patients/import"
+            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+          >
+            <Plus size={16} />
+            Bulk Import Patients
+          </Link>
         </div>
       </div>
 
@@ -91,7 +98,7 @@ export default function PatientsPage() {
                 <th className="px-4 py-3">Patient</th>
                 <th className="px-4 py-3">Gender</th>
                 <th className="px-4 py-3">Phone</th>
-                <th className="px-4 py-3">Registered</th>
+                <th className="px-4 py-3">D.O.B</th>
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
@@ -139,7 +146,7 @@ export default function PatientsPage() {
                     </td>
                     <td className="px-4 py-3 text-slate-600">{patient.phone}</td>
                     <td className="px-4 py-3 text-slate-500">
-                      {new Date(patient.createdAt).toLocaleDateString()}
+                      {new Date(patient.dateOfBirth).toLocaleDateString()}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-2">
