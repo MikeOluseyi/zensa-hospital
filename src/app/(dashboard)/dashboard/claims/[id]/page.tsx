@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import api from "@/lib/api";
+import { openAttachment } from "@/lib/fileUrl";
 import { ClaimAPI, Claim } from "@/services/insurance";
 import {
   ArrowLeft,
@@ -668,13 +669,11 @@ export default function ClaimDetailPage() {
             <p className="text-sm text-gray-400 text-center py-10">No attachments yet.</p>
           ) : (
             <div className="divide-y divide-gray-50">
-              {attachments.map((a) => (
-  <a
+             {attachments.map((a) => (
+  <button
     key={a.id}
-    href={`${process.env.NEXT_PUBLIC_API_URL?.replace("/api", "")}${a.fileUrl}`}
-    target="_blank"
-    rel="noreferrer"
-    className="flex items-center justify-between px-6 py-3 hover:bg-slate-50 transition-colors"
+    onClick={() => openAttachment(`/claim-Attachment/download/${a.id}`, a.fileName)}
+    className="w-full flex items-center justify-between px-6 py-3 hover:bg-slate-50 transition-colors text-left"
   >
     <div className="flex items-center gap-3">
       <Paperclip size={14} className="text-slate-400" />
@@ -683,7 +682,7 @@ export default function ClaimDetailPage() {
         <p className="text-xs text-slate-400">{a.type} · {new Date(a.attachedAt).toLocaleDateString()}</p>
       </div>
     </div>
-  </a>
+  </button>
 ))}
             </div>
           )}
