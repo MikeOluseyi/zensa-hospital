@@ -191,7 +191,7 @@ export default function AdmissionsPage() {
           </p>
         </div>
         <Link
-          href="/dashboard/admissions/new"
+          href="/dashboard/admissions/emergency"
           className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
         >
           <BedDouble size={16} />
