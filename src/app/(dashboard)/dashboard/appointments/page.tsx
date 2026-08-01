@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
+import { useAuthStore } from "@/store/authStore";
 import AddAppointmentModal from "@/components/appointments/AddAppointmentModal";
 import AppointmentsCalendar from "@/components/appointments/AppointmentsCalendar";
 import Link from "next/link";
@@ -22,13 +23,16 @@ interface Appointment {
   id: string;
   appointmentDate: string;
   reason: string;
-  status: "SCHEDULED" | "IN_PROGRESS" | "CONSULTED" | "COMPLETED" | "CANCELLED";
+  status: "SCHEDULED" | "CHECKED_IN" | "TRIAGED" | "QUEUED" | "IN_PROGRESS" | "AWAITING_RESULTS" | "READY_FOR_REVIEW" | "CONSULTED" | "ADMISSION_REQUESTED" |
+  "ADMITTED" | 
+  "TRANSFERRED" |"COMPLETED" | "CANCELLED";
   patient: {
     id: string;
     firstName: string;
     lastName: string;
   };
   doctor: {
+    id: string;
     firstName: string;
     lastName: string;
   };
@@ -36,13 +40,22 @@ interface Appointment {
 
 const statusStyles: Record<string, { bg: string; text: string; border: string; label: string }> = {
   SCHEDULED: { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200", label: "Scheduled" },
+  CHECKED_IN: { bg: "bg-sky-50", text: "text-sky-700", border: "border-sky-200", label: "Checked In" },
+  TRIAGED: { bg: "bg-cyan-50", text: "text-cyan-700", border: "border-cyan-200", label: "Triaged" },
+  QUEUED: { bg: "bg-indigo-50", text: "text-indigo-700", border: "border-indigo-200", label: "Queued" },
   IN_PROGRESS: { bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200", label: "In Progress" },
+  AWAITING_RESULTS: { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200", label: "Awaiting Results" },
+  READY_FOR_REVIEW: { bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200", label: "Ready for Review" },
   CONSULTED: { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200", label: "Consulted" },
+  ADMISSION_REQUESTED: { bg: "bg-fuchsia-50", text: "text-fuchsia-700", border: "border-fuchsia-200", label: "Admission Requested" },
+  ADMITTED: { bg: "bg-teal-50", text: "text-teal-700", border: "border-teal-200", label: "Admitted" },
+  TRANSFERRED: { bg: "bg-slate-100", text: "text-slate-700", border: "border-slate-200", label: "Transferred" },
   COMPLETED: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", label: "Completed" },
   CANCELLED: { bg: "bg-red-50", text: "text-red-700", border: "border-red-200", label: "Cancelled" },
 };
 
 export default function AppointmentsPage() {
+  const user = useAuthStore((state) => state.user);
   const router = useRouter();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [filtered, setFiltered] = useState<Appointment[]>([]);
@@ -226,6 +239,7 @@ export default function AppointmentsPage() {
               ) : (
                 filtered.map((appt) => {
                   const style = statusStyles[appt.status] || statusStyles.SCHEDULED;
+                  const isOwner = user?.role !== "DOCTOR" || appt.doctor.id === user?.id;
 
                   return (
                     <tr key={appt.id} className="hover:bg-slate-50 transition-colors">
@@ -259,7 +273,7 @@ export default function AppointmentsPage() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-end gap-2">
-                          {appt.status === "IN_PROGRESS" && (
+                          {appt.status === "IN_PROGRESS" && isOwner && (
                             <button
                               onClick={() =>
                                 router.push(`/dashboard/consultations/new?appointmentId=${appt.id}`)
@@ -268,6 +282,17 @@ export default function AppointmentsPage() {
                             >
                               <Stethoscope size={12} />
                               Consult
+                            </button>
+                          )}
+                          {appt.status === "READY_FOR_REVIEW" && isOwner && (
+                            <button
+                              onClick={async () => {
+                                await api.patch(`/consultations/${appt.id}/resume`);
+                                router.push(`/dashboard/consultations/new?appointmentId=${appt.id}`);
+                              }}
+                              className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-orange-600 text-white text-xs font-medium hover:bg-orange-700 transition-colors"
+                            >
+                              <Stethoscope size={12} /> Resume
                             </button>
                           )}
                           {appt.status === "CONSULTED" && (

@@ -176,6 +176,7 @@ export default function InpatientChart({ params }: { params: Promise<{ admission
   const [timeline, setTimeline] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(true);
+  const hasAttendingDoctor = !!admission?.attendingDoctor;
 
   const [showDoctorModal, setShowDoctorModal] = useState(false);
   const [doctorTransfer, setDoctorTransfer] = useState({ doctorId: "", reason: "" });
@@ -458,13 +459,13 @@ async function confirmDischarge() {
                     ? `Dr. ${admission.attendingDoctor.firstName} ${admission.attendingDoctor.lastName}`
                     : "Unassigned"}
                 </p>
-                {user?.role === "DOCTOR" && (
+                {(user?.role === "DOCTOR" || (!hasAttendingDoctor && (user?.role === "NURSE" || user?.role === "ADMIN"))) && (
                   <button
                     onClick={() => setShowDoctorModal(true)}
                     className="mt-2 text-xs text-blue-300 hover:text-blue-200 flex items-center gap-1 ml-auto transition-colors"
                   >
                     <ArrowRightLeft size={12} />
-                    Transfer Care
+                    {hasAttendingDoctor ? "Transfer Care" : "Assign Doctor"}
                   </button>
                 )}
                 {user?.role === "DOCTOR" && admission.status === "ADMITTED" && (
@@ -529,13 +530,16 @@ async function confirmDischarge() {
       )}
 
       {/* Tab Navigation */}
+      {/* Tab Navigation */}
       <div className="flex items-center gap-1 bg-slate-100/80 p-1 rounded-lg w-fit">
         {[
           { id: "overview", label: "Overview", icon: Activity },
           { id: "timeline", label: "Timeline", icon: Clock },
           { id: "vitals", label: "Vitals", icon: HeartPulse },
-          { id: "medications", label: "Medications", icon: Pill },
-          { id: "labs", label: "Lab & Procedures", icon: FlaskConical },
+          ...(hasAttendingDoctor ? [
+            { id: "medications", label: "Medications", icon: Pill },
+            { id: "labs", label: "Lab & Procedures", icon: FlaskConical },
+          ] : []),
           { id: "notes", label: "Clinical Notes", icon: FileText },
         ].map((tab) => (
           <button
@@ -909,7 +913,6 @@ async function confirmDischarge() {
 
       {activeTab === "labs" && (
   <div className="space-y-6">
-   // AFTER
     {user?.role === "DOCTOR" && (
       <Card title="Order Lab / Procedure" icon={FlaskConical} className="border-violet-200 bg-violet-50/30">
         <ServiceSearch category="SPECIALIST" onSelect={stageProcedure} />
@@ -1151,7 +1154,14 @@ async function confirmDischarge() {
       {/* CLINICAL NOTES TAB */}
       {activeTab === "notes" && (
         <div className="space-y-6">
-          {user?.role === "DOCTOR" && (
+          
+          {!hasAttendingDoctor && (
+            <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+              No attending doctor assigned yet. Nursing notes and vitals can still be recorded — medications, lab orders, and doctor reviews will be available once a doctor is assigned.
+            </div>
+          )}
+
+          {user?.role === "DOCTOR" && hasAttendingDoctor && (
             <Card title="New Doctor Review (SOAP)" icon={Stethoscope} className="border-blue-200 bg-blue-50/30">
               <form onSubmit={addNote} className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">

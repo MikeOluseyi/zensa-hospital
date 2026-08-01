@@ -100,7 +100,7 @@ export default function EmergencyAdmissionPage() {
       const res = await api.post("/admissions", {
         patientId: patient.id,
         bedId,
-        attendingDoctorId,
+        attendingDoctorId: attendingDoctorId || undefined,
         reason: reason.trim(),
       });
 
@@ -200,7 +200,7 @@ export default function EmergencyAdmissionPage() {
 
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">
-            Attending Doctor <span className="text-red-500">*</span>
+            Attending Doctor <span className="text-slate-400 font-normal">(optional — can be assigned later)</span>
           </label>
           <select
             value={attendingDoctorId}
@@ -229,7 +229,7 @@ export default function EmergencyAdmissionPage() {
 
         <button
           onClick={submit}
-          disabled={submitting || !patient || !bedId || !attendingDoctorId || !reason.trim()}
+          disabled={submitting || !patient || !bedId || !reason.trim()}
           className="w-full flex items-center justify-center gap-2 bg-red-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50 transition-colors"
         >
           {submitting ? <Loader2 size={16} className="animate-spin" /> : <BedDouble size={16} />}
