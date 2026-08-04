@@ -175,6 +175,10 @@ export default function InpatientChart({ params }: { params: Promise<{ admission
   const [doctors, setDoctors] = useState<any[]>([]);
   const [timeline, setTimeline] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("overview");
+  const [roundStatus, setRoundStatus] = useState<any>(null);
+  const [recordingRound, setRecordingRound] = useState(false);
+  const [roundServices, setRoundServices] = useState<any[]>([]);
+  const [showRoundPicker, setShowRoundPicker] = useState(false);
   const [loading, setLoading] = useState(true);
   const hasAttendingDoctor = !!admission?.attendingDoctor;
 
@@ -211,7 +215,7 @@ export default function InpatientChart({ params }: { params: Promise<{ admission
       setLoading(true);
       await Promise.all([
         fetchAdmission(), fetchDoctors(), fetchNotes(), fetchMedications(),
-        fetchNursingNotes(), fetchVitals(), fetchTimeline(),
+        fetchNursingNotes(), fetchVitals(), fetchTimeline(), fetchRoundStatus(),
       ]);
       setLoading(false);
     };
@@ -236,6 +240,26 @@ export default function InpatientChart({ params }: { params: Promise<{ admission
     const res = await api.get(`/admission-medications/${admissionId}`);
     setMedications(res.data);
   }
+
+  async function fetchRoundStatus() {
+  try {
+    const res = await api.get(`/admissions/${admissionId}/daily-round-status`);
+    setRoundStatus(res.data);
+  } catch (err) {
+    console.error("Failed to fetch round status:", err);
+  }
+}
+
+async function handleGatedError(err: any): Promise<boolean> {
+  if (err.response?.data?.code === "ROUND_SERVICE_REQUIRED") {
+    const res = await api.get("/services?category=CONSULTATION&visitSetting=INPATIENT");
+    setRoundServices(res.data);
+    setShowRoundPicker(true);
+    return true; // handled — caller should stop further alerting
+  }
+  return false;
+}
+
   async function fetchNursingNotes() {
     try { setNursingNotes((await api.get(`/nursing-notes/${admissionId}`)).data); } catch {}
   }
@@ -256,12 +280,16 @@ export default function InpatientChart({ params }: { params: Promise<{ admission
 
   async function addNote(e: React.FormEvent) {
     e.preventDefault();
-    await api.post("/admission-doctor-notes", { admissionId, ...form });
-    setForm({ subjective: "", objective: "", assessment: "", plan: "" });
-    fetchNotes();
+    try {
+      await api.post("/admission-doctor-notes", { admissionId, ...form });
+      setForm({ subjective: "", objective: "", assessment: "", plan: "" });
+      fetchNotes();
+    } catch (err: any) {
+      const handled = await handleGatedError(err);
+      if (!handled) alert(err.response?.data?.error || "Failed to save doctor review.");
+    }
   }
   
-  // AFTER
   async function prescribeMedication(e: React.FormEvent) {
     e.preventDefault();
     if (!medForm.inventoryItemId) {
@@ -272,27 +300,47 @@ export default function InpatientChart({ params }: { params: Promise<{ admission
       alert("Please add at least one dose time, or switch to As-needed (PRN).");
       return;
     }
-    await api.post("/admission-medications", {
-      admissionId,
-      inventoryItemId: medForm.inventoryItemId,
-      medicationName: medForm.medicationName,
-      dosage: medForm.dosage,
-      frequency: medForm.frequency,
-      duration: medForm.duration,
-      route: medForm.route,
-      orderType: medForm.orderType,
-      quantityLimit: medForm.orderType === "PRN" ? Number(medForm.quantityLimit) || null : null,
-      scheduledTimes: medForm.orderType === "SCHEDULED"
-        ? medForm.scheduledTimes.filter(Boolean).map((t) => new Date(t).toISOString())
-        : undefined,
-    });
-    setMedForm({
-      inventoryItemId: "", medicationName: "", dosage: "", frequency: "", duration: "", route: "ORAL",
-      saleUnit: "", baseUnit: "", unitsPerSaleUnit: 0,
-      orderType: "SCHEDULED", scheduledTimes: [""], quantityLimit: "",
-    });
-    fetchMedications();
+    try {
+      await api.post("/admission-medications", {
+        admissionId,
+        inventoryItemId: medForm.inventoryItemId,
+        medicationName: medForm.medicationName,
+        dosage: medForm.dosage,
+        frequency: medForm.frequency,
+        duration: medForm.duration,
+        route: medForm.route,
+        orderType: medForm.orderType,
+        quantityLimit: medForm.orderType === "PRN" ? Number(medForm.quantityLimit) || null : null,
+        scheduledTimes: medForm.orderType === "SCHEDULED"
+          ? medForm.scheduledTimes.filter(Boolean).map((t) => new Date(t).toISOString())
+          : undefined,
+      });
+      setMedForm({
+        inventoryItemId: "", medicationName: "", dosage: "", frequency: "", duration: "", route: "ORAL",
+        saleUnit: "", baseUnit: "", unitsPerSaleUnit: 0,
+        orderType: "SCHEDULED", scheduledTimes: [""], quantityLimit: "",
+      });
+      fetchMedications();
+    } catch (err: any) {
+      const handled = await handleGatedError(err);
+      if (!handled) alert(err.response?.data?.error || "Failed to prescribe medication.");
+    }
   }
+
+async function recordRound(hospitalServiceId?: string) {
+  setRecordingRound(true);
+  try {
+    await api.post(`/admissions/${admissionId}/daily-round`, { hospitalServiceId });
+    setShowRoundPicker(false);
+    fetchRoundStatus();
+  } catch (err: any) {
+    const handled = await handleGatedError(err);
+    if (!handled) alert(err.response?.data?.error || "Failed to record today's round.");
+  } finally {
+    setRecordingRound(false);
+  }
+}
+
   async function createNursingNote(e: React.FormEvent) {
     e.preventDefault();
     await api.post("/nursing-notes", { admissionId, note: nursingNote });
@@ -367,7 +415,8 @@ async function sendAdmissionProcedureToLab(index: number) {
     setStagedAdmissionProcedures(stagedAdmissionProcedures.filter((_, i) => i !== index));
     fetchProcedures();
   } catch (err: any) {
-    alert(err.response?.data?.error || "Failed to order procedure.");
+    const handled = await handleGatedError(err);
+    if (!handled) alert(err.response?.data?.error || "Failed to order procedure.");
   } finally {
     setSendingAdmissionProcIndex(null);
   }
@@ -529,7 +578,36 @@ async function confirmDischarge() {
         </div>
       )}
 
-      {/* Tab Navigation */}
+      {roundStatus?.required && (
+  <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between">
+    <p className="text-sm text-amber-800">
+      Today's consultation round hasn't been recorded yet.
+    </p>
+    <button
+      onClick={() => recordRound()}
+      disabled={recordingRound}
+      className="bg-amber-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-amber-700 disabled:opacity-50"
+    >
+      {recordingRound ? "Recording..." : "Record Now"}
+    </button>
+  </div>
+)}
+
+{showRoundPicker && (
+  <div className="bg-white border border-amber-300 rounded-xl p-4 space-y-2">
+    <p className="text-sm font-medium text-slate-700">No default configured — select today's consultation service:</p>
+    {roundServices.map((s) => (
+      <button
+        key={s.id}
+        onClick={() => recordRound(s.id)}
+        className="w-full text-left p-2 border rounded-lg text-sm hover:bg-slate-50"
+      >
+        {s.service.name} — ₦{s.price.toLocaleString()}
+      </button>
+    ))}
+  </div>
+)}
+
       {/* Tab Navigation */}
       <div className="flex items-center gap-1 bg-slate-100/80 p-1 rounded-lg w-fit">
         {[
