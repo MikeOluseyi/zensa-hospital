@@ -69,6 +69,9 @@ export default function BedsPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [editingBed, setEditingBed] = useState<Bed | null>(null);
+  const [editForm, setEditForm] = useState({ bedNumber: "", dailyRate: "", status: "" });
+  const [saving, setSaving] = useState(false);
 
   const [form, setForm] = useState({
     wardId: "",
@@ -146,6 +149,29 @@ export default function BedsPage() {
       setCreating(false);
     }
   }
+
+  function openEdit(bed: Bed) {
+  setEditingBed(bed);
+  setEditForm({
+    bedNumber: bed.bedNumber,
+    dailyRate: bed.dailyRate != null ? String(bed.dailyRate) : "",
+    status: bed.status,
+  });
+}
+
+async function saveBed() {
+  if (!editingBed) return;
+  setSaving(true);
+  try {
+    await api.patch(`/beds/${editingBed.id}`, editForm);
+    setEditingBed(null);
+    fetchBeds();
+  } catch (err: any) {
+    alert(err.response?.data?.error || "Failed to update bed.");
+  } finally {
+    setSaving(false);
+  }
+}
 
   const availableCount = beds.filter((b) => b.status === "AVAILABLE").length;
   const occupiedCount = beds.filter((b) => b.status === "OCCUPIED").length;
@@ -251,6 +277,7 @@ export default function BedsPage() {
                 <th className="px-4 py-3">Daily Rate</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Current Patient</th>
+                <th className="px-4 py-3">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -318,6 +345,16 @@ export default function BedsPage() {
                           <span className="text-sm text-slate-400">-</span>
                         )}
                       </td>
+                      <td className="px-4 py-3 text-right">
+  <button
+    onClick={() => openEdit(bed)}
+    disabled={bed.status === "OCCUPIED"}
+    className="text-blue-600 hover:text-blue-700 text-xs font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+    title={bed.status === "OCCUPIED" ? "Cannot edit an occupied bed" : "Edit"}
+  >
+    Edit
+  </button>
+</td>
                     </tr>
                   );
                 })
@@ -326,6 +363,61 @@ export default function BedsPage() {
           </table>
         </div>
       </div>
+
+      {editingBed && (
+  <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+      <div className="flex items-center justify-between p-6 border-b border-slate-100">
+        <h2 className="text-lg font-semibold text-slate-900">Edit Bed {editingBed.bedNumber}</h2>
+        <button onClick={() => setEditingBed(null)} className="p-2 rounded-lg hover:bg-slate-100 text-slate-400">
+          <X size={18} />
+        </button>
+      </div>
+      <div className="p-6 space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Bed Number</label>
+          <input
+            value={editForm.bedNumber}
+            onChange={(e) => setEditForm({ ...editForm, bedNumber: e.target.value })}
+            className={inputClass}
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Daily Rate (₦)</label>
+          <input
+            type="number"
+            value={editForm.dailyRate}
+            onChange={(e) => setEditForm({ ...editForm, dailyRate: e.target.value })}
+            className={inputClass}
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
+          <select
+            value={editForm.status}
+            onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+            className={selectClass}
+          >
+            <option value="AVAILABLE">Available</option>
+            <option value="MAINTENANCE">Maintenance (out of commission)</option>
+          </select>
+        </div>
+      </div>
+      <div className="flex items-center justify-end gap-3 p-6 border-t border-slate-100">
+        <button onClick={() => setEditingBed(null)} className="px-4 py-2.5 text-sm font-medium text-slate-600">
+          Cancel
+        </button>
+        <button
+          onClick={saveBed}
+          disabled={saving}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+        >
+          {saving ? <Loader2 size={14} className="animate-spin" /> : "Save"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
       {/* Add Bed Modal */}
       {showModal && (
@@ -405,6 +497,7 @@ export default function BedsPage() {
                       Create Bed
                     </>
                   )}
+                
                 </button>
               </div>
             </form>

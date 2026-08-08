@@ -32,6 +32,7 @@ import {
   Inbox,
   UserRound,
   Settings,
+  ShieldUser,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { cn } from "@/lib/utils";
@@ -71,6 +72,7 @@ const roleMenus: Record<string, MenuItem[]> = {
         { label: "Invoices", href: "/dashboard/billing/invoice" },
       ],
     },
+    { label: "Authorization Requests", href: "/dashboard/authorization-requests", icon: ShieldUser},
     { label: "Claims", href: "/dashboard/claims", icon: ShieldCheck },
     { label: "Staff", href: "/dashboard/staff", icon: UserCog },
     { label: "Departments", href: "/dashboard/departments", icon: Building2 },

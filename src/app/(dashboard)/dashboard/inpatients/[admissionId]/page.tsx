@@ -6,6 +6,7 @@ import api from "@/lib/api";
 import { cn } from "@/lib/utils";
 import InventorySearch from "@/components/inventory/InventorySearch";
 import MedicationScheduleFields from "@/components/medications/MedicationScheduleFields";
+import DischargeMedications from "@/components/admissions/DischargeMedications";
 import ServiceSearch from "@/components/search/ServiceSearch";
 import VoiceInputButton from "@/components/common/VoiceInputButton";
 import {
@@ -577,6 +578,10 @@ async function confirmDischarge() {
           </div>
         </div>
       )}
+            {/* Discharge Medications — shown once discharge is ordered */}
+      {admission?.status === "DISCHARGE_ORDERED" && (
+        <DischargeMedications admissionId={admission.id} />
+      )}
 
       {roundStatus?.required && (
   <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between">
@@ -592,7 +597,6 @@ async function confirmDischarge() {
     </button>
   </div>
 )}
-
 {showRoundPicker && (
   <div className="bg-white border border-amber-300 rounded-xl p-4 space-y-2">
     <p className="text-sm font-medium text-slate-700">No default configured — select today's consultation service:</p>

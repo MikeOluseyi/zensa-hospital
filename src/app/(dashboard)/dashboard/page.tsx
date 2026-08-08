@@ -8,7 +8,7 @@ import {
   Users, CalendarDays, CreditCard, BedDouble, Receipt, Pill,
   FlaskConical, Activity, Clock, AlertCircle, CheckCircle2,
   Stethoscope, HeartPulse, ChevronRight, ArrowUpRight, Loader2,
-  ClipboardCheck, UserCog, Wallet, Package, Building2,
+  ClipboardCheck, UserCog, Wallet, Package, Building2, History,
 } from "lucide-react";
 
 // ─── Shared building blocks ──────────────────────────────
@@ -374,6 +374,15 @@ function PharmacistHome({ firstName }: { firstName?: string }) {
           color="text-pink-600"
           bgColor="bg-pink-50"
           href="/dashboard/pharmacy"
+        />
+        <StatCard
+          title="Dispense History"
+          value={pendingCount}
+          subtitle="Previous prescriptions dispensed"
+          icon={History}
+          color="text-pink-600"
+          bgColor="bg-pink-50"
+          href="/dashboard/pharmacy/history"
         />
         <StatCard
           title="Low Stock Items"
