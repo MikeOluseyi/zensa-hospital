@@ -1,7 +1,7 @@
-// AFTER
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { useAuthStore } from "@/store/authStore";
 import api from "@/lib/api";
 import {
   Pill,
@@ -46,6 +46,7 @@ interface AdmissionOrder {
 
 interface Prescription {
   id: string;
+  prescribedBy?: { firstName: string; lastName: string } | null;
   medication: string;
   dosage: string;
   frequency: string;
@@ -59,6 +60,7 @@ interface Prescription {
 }
 
 export default function PharmacyPage() {
+  const user = useAuthStore((s) => s.user);
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [admissionOrders, setAdmissionOrders] = useState<AdmissionOrder[]>([]);
   const [loading, setLoading] = useState(true);
@@ -221,11 +223,23 @@ export default function PharmacyPage() {
                   <div class="value">${item.instructions}</div>
                 </div>
                 ` : ""}
+                <div class="section">
+  <div class="label">Prescribed By</div>
+  <div class="value">Dr. ${item.prescribedBy?.firstName ?? "-"} ${item.prescribedBy?.lastName ?? ""}</div>
+</div>
+<div class="section">
+  <div class="label">Dispensed By</div>
+  <div class="value">${user?.firstName ?? ""} ${user?.lastName ?? ""}</div>
+</div>
                 <div class="barcode">*${item.id.slice(-8).toUpperCase()}*</div>
-                <div class="footer">
-                  <p>Dispensed: ${new Date().toLocaleDateString()}</p>
-                  <p>Keep out of reach of children</p>
-                </div>
+               <div class="footer">
+  <p>Dispensed: ${new Date().toLocaleDateString()}</p>
+  <p>Keep out of reach of children</p>
+  <div style="margin-top:6px;display:flex;align-items:center;justify-content:center;gap:4px;">
+    <img src="${window.location.origin}/zensa-mark.png" style="width:10px;height:10px;" />
+    <span>Powered by Zensa</span>
+  </div>
+</div>
               </body>
             </html>
           `);
@@ -240,6 +254,75 @@ export default function PharmacyPage() {
       setPrintingId(null);
     }, 100);
   }
+
+  function handlePrintAdmission(order: AdmissionOrder) {
+  const printWindow = window.open("", "_blank", "width=300,height=450");
+  if (!printWindow) return;
+
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>Medication Label</title>
+        <style>
+          @media print { body { margin: 0; padding: 0; } }
+          body { font-family: monospace; font-size: 12px; line-height: 1.4; padding: 8px; width: 58mm; }
+          .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 4px; margin-bottom: 8px; }
+          .header h2 { font-size: 14px; margin: 0; }
+          .header p { font-size: 10px; margin: 2px 0 0; color: #666; }
+          .section { margin-bottom: 6px; }
+          .label { font-weight: bold; font-size: 10px; text-transform: uppercase; color: #666; }
+          .value { font-size: 12px; }
+          .footer { border-top: 1px dashed #000; padding-top: 4px; margin-top: 8px; font-size: 9px; text-align: center; color: #666; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h2>${hospital?.name ?? "Zensa Health"}</h2>
+          <p>Inpatient Medication Label</p>
+        </div>
+        <div class="section">
+          <div class="label">Patient</div>
+          <div class="value">${order.admission.patient.firstName} ${order.admission.patient.lastName}</div>
+          <div class="value" style="font-size:10px;color:#666;">ID: ${order.admission.patient.patientNumber}</div>
+        </div>
+        <div class="section">
+          <div class="label">Ward / Bed</div>
+          <div class="value">${order.admission.bed.ward.name} — Bed ${order.admission.bed.bedNumber}</div>
+        </div>
+        <div class="section">
+          <div class="label">Medication</div>
+          <div class="value" style="font-size:14px;font-weight:bold;">${order.medicationName}</div>
+        </div>
+        <div class="section">
+          <div class="label">Dosage / Route</div>
+          <div class="value">${order.dosage} — ${order.route}</div>
+        </div>
+        <div class="section">
+          <div class="label">Frequency</div>
+          <div class="value">${order.frequency}</div>
+        </div>
+        <div class="section">
+          <div class="label">Prescribed By</div>
+          <div class="value">Dr. ${order.doctor.firstName} ${order.doctor.lastName}</div>
+        </div>
+        <div class="section">
+          <div class="label">Verified By</div>
+          <div class="value">${user?.firstName ?? ""} ${user?.lastName ?? ""}</div>
+        </div>
+        <div class="footer">
+          <p>${new Date().toLocaleDateString()}</p>
+          <div style="margin-top:6px;display:flex;align-items:center;justify-content:center;gap:4px;">
+            <img src="${window.location.origin}/zensa-mark.png" style="width:10px;height:10px;" />
+            <span>Powered by Zensa</span>
+          </div>
+        </div>
+      </body>
+    </html>
+  `);
+  printWindow.document.close();
+  printWindow.focus();
+  setTimeout(() => { printWindow.print(); printWindow.close(); }, 250);
+}
 
   const pendingCount = prescriptions.filter((p) => p.status === "PENDING").length;
 
@@ -301,6 +384,13 @@ export default function PharmacyPage() {
                     <XCircle size={12} />
                     Reject
                   </button>
+                  <button
+  onClick={() => handlePrintAdmission(order)}
+  className="flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3 py-2 rounded-lg text-xs font-medium transition-colors"
+>
+  <Printer size={12} />
+  Print
+</button>
                 </div>
               </div>
             ))}
